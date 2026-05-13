@@ -940,3 +940,44 @@ select{
   opacity:0;
   cursor:pointer;
 }
+/* =========================
+   FIX EXPORTACIÓN PDF ANUAL
+   Solo imprime calendario anual
+========================= */
+
+#printAnnualCalendar{
+  display:none;
+}
+
+@media print{
+  body.print-annual main,
+  body.print-annual nav,
+  body.print-annual #splashScreen,
+  body.print-annual .modal-backdrop,
+  body.print-annual .bottom-nav,
+  body.print-annual .tab,
+  body.print-annual .card,
+  body.print-annual button{
+    display:none!important;
+  }
+
+  body.print-annual #printAnnualCalendar{
+    display:block!important;
+    visibility:visible!important;
+    position:static!important;
+    background:white!important;
+    color:black!important;
+    padding:14px!important;
+  }
+
+  body.print-annual{
+    background:white!important;
+    color:black!important;
+    padding:0!important;
+  }
+
+  body.print-annual *{
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+}
