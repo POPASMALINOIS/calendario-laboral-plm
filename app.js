@@ -1246,13 +1246,138 @@ function deleteHistoryItem(id){
 }
 function exportAnnualCalendarPDF(){
   const year = Number(document.getElementById("calendarYearSelect")?.value || currentDate.getFullYear());
-  const existing = document.getElementById("printAnnualCalendar");
-  if(existing) existing.remove();
-
-  const printBox = document.createElement("div");
-  printBox.id = "printAnnualCalendar";
 
   let html = `
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <title>Calendario Laboral PLM ${year}</title>
+    <style>
+      body{
+        font-family: Arial, sans-serif;
+        background:white;
+        color:black;
+        margin:16px;
+      }
+
+      .print-title{
+        text-align:center;
+        font-size:22px;
+        font-weight:900;
+        margin-bottom:14px;
+      }
+
+      .print-year-grid{
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:10px;
+      }
+
+      .print-month{
+        border:1px solid #d1d5db;
+        border-radius:8px;
+        padding:6px;
+        page-break-inside:avoid;
+      }
+
+      .print-month h4{
+        margin:0 0 6px;
+        text-align:center;
+        font-size:13px;
+        text-transform:capitalize;
+      }
+
+      .print-weekdays,
+      .print-days{
+        display:grid;
+        grid-template-columns:repeat(7,1fr);
+        gap:2px;
+      }
+
+      .print-weekday{
+        font-size:7px;
+        text-align:center;
+        font-weight:800;
+        color:#6b7280;
+      }
+
+      .print-day{
+        min-height:30px;
+        border:1px solid #e5e7eb;
+        border-radius:4px;
+        font-size:7px;
+        padding:2px;
+        overflow:hidden;
+      }
+
+      .print-day.empty{
+        border:none;
+      }
+
+      .print-day.has{
+        color:white;
+        font-weight:800;
+      }
+
+      .print-day.holiday{
+        color:#dc2626;
+      }
+
+      .print-tag{
+        display:block;
+        font-size:6px;
+        margin-top:1px;
+      }
+
+      .print-legend{
+        margin-top:12px;
+        padding-top:8px;
+        border-top:1px solid #d1d5db;
+        page-break-inside:avoid;
+      }
+
+      .print-legend h3{
+        margin:0 0 6px;
+        font-size:11px;
+        text-align:center;
+      }
+
+      .print-legend-grid{
+        display:grid;
+        grid-template-columns:repeat(4,1fr);
+        gap:4px 8px;
+        font-size:7px;
+      }
+
+      .print-legend-item{
+        display:flex;
+        align-items:center;
+        gap:4px;
+        line-height:1.1;
+      }
+
+      .print-legend-color{
+        width:9px;
+        height:9px;
+        min-width:9px;
+        border-radius:2px;
+        display:inline-block;
+        border:0.5px solid #666;
+      }
+
+      *{
+        -webkit-print-color-adjust:exact!important;
+        print-color-adjust:exact!important;
+      }
+
+      @page{
+        size:A4 landscape;
+        margin:8mm;
+      }
+    </style>
+  </head>
+  <body>
     <div class="print-title">Calendario Laboral PLM · ${year}</div>
     <div class="print-year-grid">
   `;
@@ -1269,6 +1394,7 @@ function exportAnnualCalendarPDF(){
 
     const first = new Date(year, month, 1);
     const last = new Date(year, month + 1, 0);
+
     let start = first.getDay();
     start = start === 0 ? 6 : start - 1;
 
@@ -1282,18 +1408,18 @@ function exportAnnualCalendarPDF(){
       const assigned = state.calendar[key] || [];
       const holiday = holidays(year)[key];
 
-      let style = "";
       let cls = "print-day";
+      let style = "";
 
       if(assigned.length){
         cls += " has";
         const colors = assigned.map(id => getColor(id));
 
         if(colors.length === 1){
-          style = `background:${colors[0]}; color:white;`;
+          style = `background:${colors[0]};`;
         }else{
           const step = 100 / colors.length;
-          style = `background:linear-gradient(135deg, ${colors.map((c,i)=>`${c} ${i*step}% ${(i+1)*step}%`).join(", ")}); color:white;`;
+          style = `background:linear-gradient(135deg, ${colors.map((c,i)=>`${c} ${i*step}% ${(i+1)*step}%`).join(", ")});`;
         }
       }
 
@@ -1335,19 +1461,24 @@ function exportAnnualCalendarPDF(){
         </div>
       </div>
     </div>
+
+    <script>
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    <\/script>
+  </body>
+  </html>
   `;
 
-  printBox.innerHTML = html;
-  document.body.appendChild(printBox);
+  const printWindow = window.open("", "_blank");
 
-  document.body.classList.add("print-annual");
+  if(!printWindow){
+    alert("El navegador ha bloqueado la ventana de impresión. Permite ventanas emergentes para esta página.");
+    return;
+  }
 
-  setTimeout(() => {
-    window.print();
-
-    setTimeout(() => {
-      document.body.classList.remove("print-annual");
-      printBox.remove();
-    }, 500);
-  }, 250);
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
 }
