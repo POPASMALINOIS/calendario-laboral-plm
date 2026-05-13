@@ -34,19 +34,18 @@
   <div class="card">
 
     <div class="calendar-controls">
+
       <div>
         <label>Año</label>
         <select id="calendarYearSelect" onchange="jumpToYear(this.value)"></select>
       </div>
 
       <div>
-        <label>Mes</label>
-        <select id="calendarMonthSelect" onchange="jumpToMonth(this.value)"></select>
+        <label>Categoría activa</label>
+        <select id="categorySelect" onchange="setSelectedCategory(this.value)"></select>
       </div>
-    </div>
 
-    <label>Categoría activa</label>
-    <select id="categorySelect" onchange="setSelectedCategory(this.value)"></select>
+    </div>
 
     <div class="view-switch">
       <button id="viewMonth" onclick="setCalendarView('month')">Mensual</button>
@@ -185,7 +184,7 @@
   </button>
 </nav>
 
-<!-- MODAL EDICIÓN -->
+<!-- MODAL -->
 <div id="editModal" class="modal-backdrop">
   <div class="modal">
 
@@ -214,7 +213,7 @@
   </div>
 </div>
 
-<script src="app.js?v=10"></script>
+<script src="app.js?v=11"></script>
 
 <script>
 if("serviceWorker" in navigator){
