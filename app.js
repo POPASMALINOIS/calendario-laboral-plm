@@ -511,7 +511,7 @@ function renderCounters(){
   box.innerHTML = "";
 
   categories.filter(c => c.countable).forEach(cat => {
-    let value = state.counters?.[year]?.[cat.id] || 0;
+    let value = Number(state.counters?.[year]?.[cat.id] || 0);
 
     let row = document.createElement("div");
     row.className = "counter-row";
@@ -519,9 +519,26 @@ function renderCounters(){
     row.innerHTML = `
       <div>
         <strong>${cat.name}</strong>
-        <div class="small">${cat.type==="hours" ? "Horas" : "Días"} anuales</div>
+        <div class="small">${cat.type === "hours" ? "Horas anuales" : "Días anuales"}</div>
       </div>
-      <input type="number" step="0.25" id="counter-${cat.id}" value="${value}">
+
+      <div class="counter-control">
+        <button 
+          type="button" 
+          class="counter-btn" 
+          onclick="changeCounterValue('${cat.id}', -1)"
+        >−</button>
+
+        <div class="counter-value" id="counter-${cat.id}">${value}</div>
+
+        <span class="counter-unit">${cat.type === "hours" ? "h" : "d"}</span>
+
+        <button 
+          type="button" 
+          class="counter-btn" 
+          onclick="changeCounterValue('${cat.id}', 1)"
+        >+</button>
+      </div>
     `;
 
     box.appendChild(row);
