@@ -4,151 +4,191 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Calendario Laboral PLM</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1f3a5f">
-<link rel="apple-touch-icon" href="icon-192.png">
 
-<style>
-:root{--bg:#f6f7fb;--card:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--primary:#1f3a5f;--soft:#e8eef8}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);padding-bottom:76px}
-header{padding:18px 16px 10px;position:sticky;top:0;background:var(--bg);z-index:5}
-h1{margin:0;font-size:24px;font-weight:900}
-header p{margin:4px 0 0;color:var(--muted)}
-main{padding:12px}
-.tab{display:none}.tab.active{display:block}
-.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 10px 25px rgba(15,23,42,.08)}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.summary-title{font-size:12px;font-weight:800;color:var(--muted)}
-.summary-value{font-size:25px;font-weight:900;margin-top:8px}
-.summary-small{font-size:12px;color:var(--muted);margin-top:4px}
-button,select,input,textarea{font-family:inherit;font-size:16px}
-button{border:0;border-radius:12px;padding:10px 12px;background:var(--primary);color:white;font-weight:800}
-button.secondary{background:var(--soft);color:var(--primary)}
-button.full{width:100%;margin-top:10px}
-button.danger{background:#fee2e2;color:#991b1b}
-select,input,textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;background:white}
-textarea{min-height:74px}
-label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bottom:6px}
-.form-row{margin-bottom:10px}
-.toolbar,.view-switch{display:grid;gap:8px;margin-bottom:12px}
-.toolbar{grid-template-columns:44px 1fr 44px;align-items:center}
-.view-switch{grid-template-columns:repeat(3,1fr)}
-.view-switch button{background:var(--soft);color:var(--primary);font-size:13px}
-.view-switch button.active{background:var(--primary);color:white}
-.calendar-title{text-align:center;font-weight:900;text-transform:capitalize}
-.weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.weekday{text-align:center;font-size:11px;font-weight:900;color:var(--muted);padding:4px 0}
-.day{min-height:72px;background:white;border:1px solid var(--border);border-radius:14px;padding:5px;overflow:hidden;user-select:none}
-.day.empty{opacity:0;pointer-events:none}
-.day.has{color:white;border-color:transparent}
-.day-number{font-size:12px;font-weight:900}
-.holiday{color:#dc2626}
-.day.has .holiday,.day.has .holiday-label{color:white}
-.holiday-label{font-size:8px;color:#dc2626;font-weight:800;line-height:1.1}
-.tag{display:inline-block;font-size:9px;font-weight:900;padding:2px 5px;border-radius:999px;background:rgba(0,0,0,.3);color:white;margin:2px 2px 0 0}
-.note-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:white;margin-left:4px}
-.year-grid{display:grid;gap:14px}
-.year-month{background:white;border:1px solid var(--border);border-radius:16px;padding:10px}
-.year-month h4{margin:0 0 8px;text-transform:capitalize}
-.year-mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.year-mini-day{min-height:32px;border-radius:8px;background:#f8fafc;font-size:10px;text-align:center;padding:3px;overflow:hidden}
-.year-mini-day.has{color:white;font-weight:900}
-.counter-row,.color-row{display:grid;grid-template-columns:1fr 95px;gap:10px;align-items:center;margin-bottom:12px}
-.color-preview{width:28px;height:28px;border-radius:8px;border:1px solid var(--border);display:inline-block;margin-right:8px;vertical-align:middle}
-input[type="color"]{height:44px;padding:4px}
-.list-item{padding:10px 0;border-bottom:1px solid var(--border)}
-.small{font-size:12px;color:var(--muted)}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:70px;background:rgba(255,255,255,.95);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
-.nav-btn{background:transparent;color:var(--muted);border-radius:0;padding:7px 2px;font-size:10px;font-weight:900}
-.nav-btn span{display:block;font-size:18px}
-.nav-btn.active{background:var(--soft);color:var(--primary)}
-.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;display:none;align-items:flex-end;padding:12px}
-.modal-backdrop.active{display:flex}
-.modal{background:white;border-radius:22px;padding:16px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.25)}
-.modal h3{margin:0 0 12px;font-size:18px}
-.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-@media(max-width:390px){.grid{grid-template-columns:1fr}.day{min-height:62px}.nav-btn{font-size:9px}}
-</style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-<header>
-<h1>Calendario Laboral PLM</h1>
-<p>Control de días, permisos y horas extra</p>
-</header>
 
 <main>
-<section id="resumen" class="tab active"><div class="grid" id="summaryGrid"></div></section>
 
+<!-- RESUMEN -->
+<section id="resumen" class="tab active">
+  <div class="page-title">Calendario Laboral PLM</div>
+  <div class="page-subtitle">Resumen general anual</div>
+
+  <div class="card">
+    <label>Año</label>
+    <select id="summaryYear" onchange="changeSummaryYear(this.value)"></select>
+  </div>
+
+  <div class="grid" id="summaryGrid"></div>
+</section>
+
+<!-- CALENDARIO -->
 <section id="calendario" class="tab">
-<div class="card">
-<label>Categoría activa</label>
-<select id="categorySelect" onchange="setSelectedCategory(this.value)"></select>
-</div>
 
-<div class="card">
-<div class="view-switch">
-<button id="viewMonth" onclick="setCalendarView('month')">Mensual</button>
-<button id="viewWeek" onclick="setCalendarView('week')">Semanal</button>
-<button id="viewYear" onclick="setCalendarView('year')">Anual</button>
-</div>
-<div class="toolbar">
-<button class="secondary" onclick="changePeriod(-1)">‹</button>
-<div class="calendar-title" id="calendarTitle"></div>
-<button class="secondary" onclick="changePeriod(1)">›</button>
-</div>
-<div id="calendarContainer"></div>
-</div>
+  <div class="card">
+
+    <div class="calendar-controls">
+      <div>
+        <label>Año</label>
+        <select id="calendarYearSelect" onchange="jumpToYear(this.value)"></select>
+      </div>
+
+      <div>
+        <label>Mes</label>
+        <select id="calendarMonthSelect" onchange="jumpToMonth(this.value)"></select>
+      </div>
+    </div>
+
+    <label>Categoría activa</label>
+    <select id="categorySelect" onchange="setSelectedCategory(this.value)"></select>
+
+    <div class="view-switch">
+      <button id="viewMonth" onclick="setCalendarView('month')">Mensual</button>
+      <button id="viewWeek" onclick="setCalendarView('week')">Semanal</button>
+      <button id="viewYear" onclick="setCalendarView('year')">Anual</button>
+    </div>
+
+    <div class="toolbar">
+      <button class="secondary" onclick="changePeriod(-1)">‹</button>
+      <div class="calendar-title" id="calendarTitle"></div>
+      <button class="secondary" onclick="changePeriod(1)">›</button>
+    </div>
+
+    <div id="calendarContainer"></div>
+
+  </div>
 </section>
 
+<!-- CONTADORES -->
 <section id="contadores" class="tab">
-<div class="card">
-<label>Año</label>
-<select id="counterYear" onchange="renderCounters()"></select>
-</div>
-<div class="card" id="counterInputs"></div>
-<button class="full" onclick="saveCounters()">Guardar contadores</button>
+  <div class="page-title">Contadores</div>
+
+  <div class="card">
+    <label>Año</label>
+    <select id="counterYear" onchange="renderCounters()"></select>
+  </div>
+
+  <div class="card" id="counterInputs"></div>
+
+  <button class="full" onclick="saveCounters()">Guardar contadores</button>
 </section>
 
+<!-- HISTÓRICO -->
 <section id="historico" class="tab">
-<div class="card">
-<div class="form-row"><label>Fecha</label><input type="date" id="historyDate"></div>
-<div class="form-row"><label>Categoría</label><select id="historyCategory"></select></div>
-<div class="form-row"><label>Horas, solo acompañamientos</label><input type="number" step="0.25" id="historyHours"></div>
-<div class="form-row"><label>Observaciones</label><textarea id="historyNote"></textarea></div>
-<button class="full" onclick="saveHistory()">Guardar histórico</button>
-</div>
-<div class="card"><h3>Histórico</h3><div id="historyList"></div></div>
+  <div class="page-title">Histórico</div>
+
+  <div class="card">
+    <div class="form-row">
+      <label>Fecha</label>
+      <input type="date" id="historyDate">
+    </div>
+
+    <div class="form-row">
+      <label>Categoría</label>
+      <select id="historyCategory"></select>
+    </div>
+
+    <div class="form-row">
+      <label>Horas (si aplica)</label>
+      <input type="number" step="0.25" id="historyHours">
+    </div>
+
+    <div class="form-row">
+      <label>Observaciones</label>
+      <textarea id="historyNote"></textarea>
+    </div>
+
+    <button class="full" onclick="saveHistory()">Guardar histórico</button>
+  </div>
+
+  <div class="card">
+    <div id="historyList"></div>
+  </div>
 </section>
 
+<!-- HORAS EXTRA -->
 <section id="horas" class="tab">
-<div class="card">
-<div class="form-row"><label>Fecha</label><input type="date" id="extraDate"></div>
-<div class="form-row"><label>Horas trabajadas</label><input type="number" step="0.25" id="extraHours"></div>
-<div class="form-row"><label>Observaciones</label><textarea id="extraNote"></textarea></div>
-<button class="full" onclick="saveExtra()">Guardar horas</button>
-</div>
-<div class="card"><h3>Horas extra</h3><div id="extraList"></div></div>
+  <div class="page-title">Horas extra</div>
+
+  <div class="card">
+    <div class="form-row">
+      <label>Fecha</label>
+      <input type="date" id="extraDate">
+    </div>
+
+    <div class="form-row">
+      <label>Horas trabajadas</label>
+      <input type="number" step="0.25" id="extraHours">
+    </div>
+
+    <div class="form-row">
+      <label>Observaciones</label>
+      <textarea id="extraNote"></textarea>
+    </div>
+
+    <button class="full" onclick="saveExtra()">Guardar horas</button>
+  </div>
+
+  <div class="card">
+    <div id="extraList"></div>
+  </div>
 </section>
 
+<!-- AJUSTES -->
 <section id="ajustes" class="tab">
-<div class="card"><h3>Colores de categorías</h3><div id="colorSettings"></div><button class="full" onclick="saveColors()">Guardar colores</button></div>
-<div class="card"><h3>Datos</h3><button class="danger full" onclick="resetApp()">Borrar todos los datos</button></div>
+  <div class="page-title">Personalización</div>
+
+  <div class="card">
+    <h3>Colores de categorías</h3>
+    <div id="colorSettings"></div>
+    <button class="full" onclick="saveColors()">Guardar colores</button>
+  </div>
+
+  <div class="card">
+    <h3>Seguridad</h3>
+    <button class="danger full" onclick="resetApp()">Borrar todos los datos</button>
+  </div>
 </section>
+
 </main>
 
+<!-- NAV -->
 <nav class="bottom-nav">
-<button class="nav-btn active" onclick="showTab('resumen',this)"><span>🏠</span>Inicio</button>
-<button class="nav-btn" onclick="showTab('calendario',this)"><span>📅</span>Calend.</button>
-<button class="nav-btn" onclick="showTab('contadores',this)"><span>📊</span>Cont.</button>
-<button class="nav-btn" onclick="showTab('historico',this)"><span>🗂️</span>Hist.</button>
-<button class="nav-btn" onclick="showTab('horas',this)"><span>⏱️</span>Horas</button>
-<button class="nav-btn" onclick="showTab('ajustes',this)"><span>⚙️</span>Ajustes</button>
+  <button class="nav-btn active" onclick="showTab('resumen',this)">
+    <span>🏠</span>Inicio
+  </button>
+
+  <button class="nav-btn" onclick="showTab('calendario',this)">
+    <span>📅</span>Calend.
+  </button>
+
+  <button class="nav-btn" onclick="showTab('contadores',this)">
+    <span>📊</span>Cont.
+  </button>
+
+  <button class="nav-btn" onclick="showTab('historico',this)">
+    <span>🗂️</span>Hist.
+  </button>
+
+  <button class="nav-btn" onclick="showTab('horas',this)">
+    <span>⏱️</span>Horas
+  </button>
+
+  <button class="nav-btn" onclick="showTab('ajustes',this)">
+    <span>⚙️</span>Ajustes
+  </button>
 </nav>
 
+<!-- MODAL EDICIÓN -->
 <div id="editModal" class="modal-backdrop">
   <div class="modal">
+
     <h3 id="modalTitle">Editar día</h3>
 
     <div class="form-row">
@@ -170,356 +210,17 @@ input[type="color"]{height:44px;padding:4px}
       <button class="secondary" onclick="closeEditModal()">Cancelar</button>
       <button onclick="saveEditModal()">Guardar</button>
     </div>
+
   </div>
 </div>
 
+<script src="app.js?v=10"></script>
+
 <script>
-const categories=[
-{id:"turno_manana",name:"TURNO MAÑANA",tag:"TM",type:"days",countable:false,color:"#2563eb"},
-{id:"vacaciones",name:"VACACIONES",tag:"VAC",type:"days",countable:true,color:"#0ea5e9"},
-{id:"dia_blanco",name:"DÍA BLANCO",tag:"DB",type:"days",countable:true,color:"#64748b"},
-{id:"dia_blanco_movil",name:"DÍA BLANCO MÓVIL",tag:"DBM",type:"days",countable:true,color:"#059669"},
-{id:"dia_blanco_trabajar",name:"DÍA BLANCO TRABAJAR",tag:"DBT",type:"days",countable:true,color:"#f97316"},
-{id:"baja",name:"BAJA",tag:"BJ",type:"days",countable:true,color:"#dc2626"},
-{id:"asuntos_propios",name:"ASUNTOS PROPIOS",tag:"AP",type:"days",countable:true,color:"#7c3aed"},
-{id:"acompanamiento_1",name:"ACOMPAÑAMIENTO 1er GRADO",tag:"A1",type:"hours",countable:true,color:"#ca8a04"},
-{id:"acompanamiento_hijos",name:"ACOMPAÑAMIENTO HIJOS",tag:"AH",type:"hours",countable:true,color:"#db2777"}
-];
-
-const monthNames=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-const weekDays=["L","M","X","J","V","S","D"];
-
-let state=JSON.parse(localStorage.getItem("laboralAppPLM")||"null")||{calendar:{},counters:{},history:[],extras:[],colors:{},notes:{},view:"month"};
-if(!state.notes)state.notes={};
-if(!state.colors)state.colors={};
-if(!state.calendar)state.calendar={};
-if(!state.counters)state.counters={};
-if(!state.history)state.history=[];
-if(!state.extras)state.extras=[];
-if(!state.view)state.view="month";
-
-let selectedCategory="turno_manana";
-let currentDate=new Date(2026,0,1);
-let longPressTimer=null;
-let longPressTriggered=false;
-let editingDateKey=null;
-
-function saveState(){localStorage.setItem("laboralAppPLM",JSON.stringify(state))}
-function getColor(id){let c=categories.find(x=>x.id===id);return state.colors[id]||(c?c.color:"#1f3a5f")}
-function formatDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-function addDays(d,n){let x=new Date(d);x.setDate(x.getDate()+n);return x}
-
-function showTab(id,btn){
-document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
-btn.classList.add("active");
-renderAll();
-}
-
-function renderCategorySelect(){
-let s=document.getElementById("categorySelect");s.innerHTML="";
-categories.forEach(c=>{let op=document.createElement("option");op.value=c.id;op.textContent=c.name;s.appendChild(op)});
-s.value=selectedCategory;
-}
-
-function setSelectedCategory(v){selectedCategory=v}
-
-function setCalendarView(v){state.view=v;saveState();renderCalendar()}
-function changePeriod(n){
-if(state.view==="year")currentDate.setFullYear(currentDate.getFullYear()+n);
-if(state.view==="month")currentDate.setMonth(currentDate.getMonth()+n);
-if(state.view==="week")currentDate.setDate(currentDate.getDate()+n*7);
-if(currentDate.getFullYear()<2026)currentDate=new Date(2026,0,1);
-if(currentDate.getFullYear()>2032)currentDate=new Date(2032,11,31);
-renderCalendar();renderSummary();
-}
-
-function easter(y){
-let a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;
-return new Date(y,mo-1,da);
-}
-
-function holidays(y){
-let h={},e=easter(y);
-function add(k,n){h[k]=n}
-add(y+"-01-01","Año Nuevo");add(y+"-01-06","Reyes");add(formatDate(addDays(e,-3)),"Jueves Santo");add(formatDate(addDays(e,-2)),"Viernes Santo");
-add(y+"-05-01","Trabajo");add(y+"-05-02","Comunidad Madrid");add(y+"-08-15","Asunción");add(y+"-10-12","Fiesta Nacional");add(y+"-12-08","Inmaculada");add(y+"-12-25","Navidad");
-let ts=new Date(y,10,1);add(ts.getDay()===0?y+"-11-02":y+"-11-01","Todos los Santos");
-let co=new Date(y,11,6);add(co.getDay()===0?y+"-12-07":y+"-12-06","Constitución");
-return h;
-}
-
-function headerWeek(container){
-let w=document.createElement("div");w.className="weekdays";
-weekDays.forEach(x=>{let d=document.createElement("div");d.className="weekday";d.textContent=x;w.appendChild(d)});
-container.appendChild(w);
-}
-
-function attachPressEvents(el,key){
-el.addEventListener("touchstart",function(){
-longPressTriggered=false;
-longPressTimer=setTimeout(function(){longPressTriggered=true;openEditModal(key)},650);
-},{passive:true});
-
-el.addEventListener("touchend",function(){
-clearTimeout(longPressTimer);
-setTimeout(function(){longPressTriggered=false},80);
-},{passive:true});
-
-el.addEventListener("mousedown",function(){
-longPressTriggered=false;
-longPressTimer=setTimeout(function(){longPressTriggered=true;openEditModal(key)},650);
-});
-
-el.addEventListener("mouseup",function(){clearTimeout(longPressTimer)});
-}
-
-function cell(date,mini){
-let key=formatDate(date),assigned=state.calendar[key]||[],hs=holidays(date.getFullYear()),holiday=hs[key],note=state.notes[key];
-let el=document.createElement("div");el.className=mini?"year-mini-day":"day";
-if(assigned.length){
-el.classList.add("has");
-let colors=assigned.map(getColor);
-el.style.background=colors.length===1?colors[0]:"linear-gradient(135deg,"+colors.map((c,i)=>c+" "+(i*100/colors.length)+"% "+((i+1)*100/colors.length)+"%").join(",")+")";
-}
-let n=document.createElement("div");n.className="day-number"+(holiday?" holiday":"");n.textContent=date.getDate();el.appendChild(n);
-if(!mini&&holiday){let h=document.createElement("div");h.className="holiday-label";h.textContent=holiday;el.appendChild(h)}
-if(!mini){
-assigned.forEach(id=>{let c=categories.find(x=>x.id===id);if(c){let t=document.createElement("span");t.className="tag";t.textContent=c.tag;if(note&&note[id]){let dot=document.createElement("span");dot.className="note-dot";t.appendChild(dot)}el.appendChild(t)}})
-}
-el.onclick=function(){if(longPressTriggered)return;toggleDate(key)};
-attachPressEvents(el,key);
-return el;
-}
-
-function renderCalendar(){
-document.getElementById("viewMonth").classList.toggle("active",state.view==="month");
-document.getElementById("viewWeek").classList.toggle("active",state.view==="week");
-document.getElementById("viewYear").classList.toggle("active",state.view==="year");
-if(state.view==="month")renderMonth();
-if(state.view==="week")renderWeek();
-if(state.view==="year")renderYear();
-}
-
-function renderMonth(){
-let c=document.getElementById("calendarContainer"),t=document.getElementById("calendarTitle"),y=currentDate.getFullYear(),m=currentDate.getMonth();
-t.textContent=monthNames[m]+" "+y;c.innerHTML="";headerWeek(c);
-let g=document.createElement("div");g.className="calendar-grid";
-let first=new Date(y,m,1),last=new Date(y,m+1,0),start=first.getDay();start=start===0?6:start-1;
-for(let i=0;i<start;i++){let e=document.createElement("div");e.className="day empty";g.appendChild(e)}
-for(let d=1;d<=last.getDate();d++)g.appendChild(cell(new Date(y,m,d),false));
-c.appendChild(g);
-}
-
-function renderWeek(){
-let c=document.getElementById("calendarContainer"),t=document.getElementById("calendarTitle");c.innerHTML="";
-let base=new Date(currentDate),day=base.getDay()===0?6:base.getDay()-1,monday=addDays(base,-day),sunday=addDays(monday,6);
-t.textContent=formatDate(monday)+" / "+formatDate(sunday);headerWeek(c);
-let g=document.createElement("div");g.className="calendar-grid";
-for(let i=0;i<7;i++)g.appendChild(cell(addDays(monday,i),false));
-c.appendChild(g);
-}
-
-function renderYear(){
-let c=document.getElementById("calendarContainer"),t=document.getElementById("calendarTitle"),y=currentDate.getFullYear();
-t.textContent=y;c.innerHTML="";
-let yg=document.createElement("div");yg.className="year-grid";
-for(let m=0;m<12;m++){
-let box=document.createElement("div");box.className="year-month";let h=document.createElement("h4");h.textContent=monthNames[m];box.appendChild(h);
-let g=document.createElement("div");g.className="year-mini-grid";
-weekDays.forEach(w=>{let wd=document.createElement("div");wd.className="weekday";wd.textContent=w;g.appendChild(wd)});
-let first=new Date(y,m,1),last=new Date(y,m+1,0),start=first.getDay();start=start===0?6:start-1;
-for(let i=0;i<start;i++){let e=document.createElement("div");e.className="year-mini-day";e.style.opacity="0";g.appendChild(e)}
-for(let d=1;d<=last.getDate();d++)g.appendChild(cell(new Date(y,m,d),true));
-box.appendChild(g);yg.appendChild(box);
-}
-c.appendChild(yg);
-}
-
-function toggleDate(key){
-if(!state.calendar[key])state.calendar[key]=[];
-
-if(state.calendar[key].includes(selectedCategory)){
-state.calendar[key]=state.calendar[key].filter(x=>x!==selectedCategory);
-if(state.notes[key])delete state.notes[key][selectedCategory];
-} else {
-state.calendar[key].push(selectedCategory);
-let cat=categories.find(c=>c.id===selectedCategory);
-if(cat&&cat.type==="hours"){
-let hours=prompt("¿Cuántas horas has gastado?", "");
-if(hours===null||hours===""){state.calendar[key]=state.calendar[key].filter(x=>x!==selectedCategory)}
-else{
-let note=prompt("Observaciones para este día:", "")||"";
-if(!state.notes[key])state.notes[key]={};
-state.notes[key][selectedCategory]={hours:Number(hours)||0,note:note};
-}
-}
-}
-
-if(state.calendar[key]&&!state.calendar[key].length)delete state.calendar[key];
-saveState();renderCalendar();renderSummary();
-}
-
-function openEditModal(key){
-editingDateKey=key;
-let assigned=state.calendar[key]||[];
-let modal=document.getElementById("editModal");
-let select=document.getElementById("modalCategory");
-let title=document.getElementById("modalTitle");
-
-title.textContent="Editar " + key;
-select.innerHTML="";
-
-let baseCategories=assigned.length?assigned:categories.map(c=>c.id);
-
-baseCategories.forEach(id=>{
-let c=categories.find(x=>x.id===id);
-if(c){
-let op=document.createElement("option");
-op.value=c.id;
-op.textContent=c.name;
-select.appendChild(op);
-}
-});
-
-let first=select.value;
-let data=(state.notes[key]&&state.notes[key][first])?state.notes[key][first]:{hours:"",note:""};
-document.getElementById("modalHours").value=data.hours||"";
-document.getElementById("modalNote").value=data.note||"";
-toggleModalHours();
-
-modal.classList.add("active");
-}
-
-function toggleModalHours(){
-let catId=document.getElementById("modalCategory").value;
-let cat=categories.find(c=>c.id===catId);
-let row=document.getElementById("modalHoursRow");
-row.style.display=cat&&cat.type==="hours"?"block":"none";
-
-if(editingDateKey){
-let data=(state.notes[editingDateKey]&&state.notes[editingDateKey][catId])?state.notes[editingDateKey][catId]:{hours:"",note:""};
-document.getElementById("modalHours").value=data.hours||"";
-document.getElementById("modalNote").value=data.note||"";
-}
-}
-
-function closeEditModal(){
-editingDateKey=null;
-document.getElementById("editModal").classList.remove("active");
-}
-
-function saveEditModal(){
-if(!editingDateKey)return;
-
-let catId=document.getElementById("modalCategory").value;
-let cat=categories.find(c=>c.id===catId);
-let hours=Number(document.getElementById("modalHours").value||0);
-let note=document.getElementById("modalNote").value||"";
-
-if(!state.calendar[editingDateKey])state.calendar[editingDateKey]=[];
-if(!state.calendar[editingDateKey].includes(catId))state.calendar[editingDateKey].push(catId);
-if(!state.notes[editingDateKey])state.notes[editingDateKey]={};
-
-if(cat.type==="hours"){
-state.notes[editingDateKey][catId]={hours:hours,note:note};
-}else{
-state.notes[editingDateKey][catId]={hours:0,note:note};
-}
-
-saveState();
-closeEditModal();
-renderCalendar();
-renderSummary();
-}
-
-function used(catId,y){
-let cat=categories.find(c=>c.id===catId);
-if(cat.type==="hours"){
-let total=0;
-Object.entries(state.notes||{}).forEach(([date,items])=>{
-if(date.startsWith(String(y))&&items[catId])total+=Number(items[catId].hours||0);
-});
-total+=state.history.filter(h=>h.category===catId&&h.date.startsWith(String(y))).reduce((s,h)=>s+Number(h.hours||0),0);
-return total;
-}
-return Object.entries(state.calendar).filter(([d,cats])=>d.startsWith(String(y))&&cats.includes(catId)).length;
-}
-
-function renderSummary(){
-let g=document.getElementById("summaryGrid");g.innerHTML="";let y=currentDate.getFullYear();
-categories.forEach(cat=>{
-let u=used(cat.id,y),total=Number((state.counters[y]&&state.counters[y][cat.id])||0),rest=cat.countable?total-u:u;
-let div=document.createElement("div");div.className="card";
-div.innerHTML=`<div class="summary-title">${cat.name}</div><div class="summary-value">${rest}${cat.type==="hours"?" h":" d"}</div><div class="summary-small">${cat.countable?`Usado: ${u}${cat.type==="hours"?" h":" d"} / Total: ${total}${cat.type==="hours"?" h":" d"}`:`Marcados: ${u} d`}</div>`;
-g.appendChild(div);
-});
-}
-
-function renderCounterYears(){let s=document.getElementById("counterYear");if(s.children.length)return;for(let y=2026;y<=2032;y++){let o=document.createElement("option");o.value=y;o.textContent=y;s.appendChild(o)}}
-
-function renderCounters(){
-renderCounterYears();let y=document.getElementById("counterYear").value||"2026",box=document.getElementById("counterInputs");box.innerHTML="";
-categories.filter(c=>c.countable).forEach(cat=>{
-let v=(state.counters[y]&&state.counters[y][cat.id])||0;
-let r=document.createElement("div");r.className="counter-row";r.innerHTML=`<div><strong>${cat.name}</strong><div class="small">${cat.type==="hours"?"Horas anuales":"Días anuales"}</div></div><input type="number" step="0.25" id="counter-${cat.id}" value="${v}">`;box.appendChild(r);
-});
-}
-
-function saveCounters(){
-let y=document.getElementById("counterYear").value;if(!state.counters[y])state.counters[y]={};
-categories.filter(c=>c.countable).forEach(cat=>state.counters[y][cat.id]=Number(document.getElementById("counter-"+cat.id).value||0));
-saveState();renderSummary();alert("Contadores guardados");
-}
-
-function renderHistoryForm(){let s=document.getElementById("historyCategory");s.innerHTML="";categories.filter(c=>c.id!=="turno_manana").forEach(c=>{let o=document.createElement("option");o.value=c.id;o.textContent=c.name;s.appendChild(o)})}
-
-function saveHistory(){
-let date=document.getElementById("historyDate").value,category=document.getElementById("historyCategory").value,hours=Number(document.getElementById("historyHours").value||0),note=document.getElementById("historyNote").value;
-if(!date||!category){alert("Indica fecha y categoría");return}
-let cat=categories.find(c=>c.id===category);if(cat.type==="hours"&&hours<=0){alert("Indica horas");return}
-state.history.unshift({date,category,hours:cat.type==="hours"?hours:0,note});saveState();renderHistoryList();renderSummary();
-}
-
-function renderHistoryList(){
-let box=document.getElementById("historyList");if(!state.history.length){box.innerHTML='<p class="small">No hay registros todavía.</p>';return}
-box.innerHTML=state.history.map(i=>{let c=categories.find(x=>x.id===i.category);return `<div class="list-item"><strong>${i.date}</strong><div>${c?c.name:""}${i.hours?` — ${i.hours} h`:""}</div><div class="small">${i.note||""}</div></div>`}).join("");
-}
-
-function saveExtra(){
-let date=document.getElementById("extraDate").value,hours=Number(document.getElementById("extraHours").value||0),note=document.getElementById("extraNote").value;
-if(!date||!hours){alert("Indica fecha y horas");return}
-state.extras.unshift({date,hours,note});saveState();renderExtraList();
-}
-
-function renderExtraList(){
-let box=document.getElementById("extraList");if(!state.extras.length){box.innerHTML='<p class="small">No hay horas extra registradas.</p>';return}
-let total=state.extras.reduce((s,i)=>s+Number(i.hours||0),0);
-box.innerHTML=`<p><strong>Total acumulado:</strong> ${total} h</p>`+state.extras.map(i=>`<div class="list-item"><strong>${i.date}</strong><div>${i.hours} horas</div><div class="small">${i.note||""}</div></div>`).join("");
-}
-
-function renderColors(){
-let box=document.getElementById("colorSettings");box.innerHTML="";
-categories.forEach(c=>{
-let r=document.createElement("div");r.className="color-row";
-let color=getColor(c.id);
-r.innerHTML=`<strong><span class="color-preview" style="background:${color}"></span>${c.name}</strong><input type="color" id="color-${c.id}" value="${color}" style="background:${color}" oninput="this.style.background=this.value">`;
-box.appendChild(r);
-});
-}
-
-function saveColors(){categories.forEach(c=>state.colors[c.id]=document.getElementById("color-"+c.id).value);saveState();renderAll();alert("Colores guardados")}
-function resetApp(){if(confirm("¿Seguro que quieres borrar todos los datos?")){localStorage.removeItem("laboralAppPLM");location.reload()}}
-
-function renderAll(){renderCategorySelect();renderCalendar();renderSummary();renderCounters();renderHistoryForm();renderHistoryList();renderExtraList();renderColors()}
-
 if("serviceWorker" in navigator){
-navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));
-caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)));
+  navigator.serviceWorker.register("./service-worker.js");
 }
-
-document.addEventListener("DOMContentLoaded",renderAll);
 </script>
+
 </body>
 </html>
