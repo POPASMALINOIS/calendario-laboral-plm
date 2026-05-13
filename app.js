@@ -8,10 +8,19 @@ const categories = [
   { id: "dia_blanco_movil", name: "DÍA BLANCO MÓVIL", tag: "DBM", type: "days", countable: true, color: "#a855f7" },
   { id: "dia_blanco_trabajar", name: "DÍA BLANCO TRABAJAR", tag: "DBT", type: "days", countable: true, color: "#f97316" },
   { id: "baja", name: "BAJA", tag: "BJ", type: "days", countable: true, color: "#ef4444" },
-  { id: "asuntos_propios", name: "ASUNTOS PROPIOS", tag: "AP", type: "days", countable: true, color: "#c084fc" },
+
+  { id: "asuntos_propios", name: "ASUNTOS PROPIOS", tag: "AP", type: "mixed", countable: true, color: "#c084fc" },
+
   { id: "acompanamiento_1", name: "ACOMPAÑAMIENTO 1er GRADO", tag: "A1", type: "hours", countable: true, color: "#eab308" },
   { id: "acompanamiento_hijos", name: "ACOMPAÑAMIENTO HIJOS", tag: "AH", type: "hours", countable: true, color: "#ec4899" }
 ];
+
+const HOURS_PER_DAY = 8;
+
+function formatAmount(value){
+  const rounded = Math.round(Number(value || 0) * 100) / 100;
+  return Number.isInteger(rounded) ? String(rounded) : String(rounded).replace(".", ",");
+}
 
 const monthNames = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const weekDays = ["L","M","X","J","V","S","D"];
@@ -414,7 +423,7 @@ function toggleDate(key){
 
     let cat = categories.find(c => c.id === selectedCategory);
 
-    if (cat.type === "hours") {
+    if (cat.type === "hours" || cat.type === "mixed") {
       let hours = prompt("¿Cuántas horas has gastado?", "");
       if (hours) {
         if (!state.notes[key]) state.notes[key] = {};
@@ -451,7 +460,36 @@ function calculateUsed(catId,year){
       }
     });
 
+    state.history
+      .filter(h => h.source !== "calendar" && h.category === catId && h.date.startsWith(String(year)))
+      .forEach(h => total += Number(h.hours || 0));
+
     return total;
+  }
+
+  if (cat.type === "mixed") {
+    let usedDays = 0;
+
+    Object.entries(state.calendar).forEach(([date,cats]) => {
+      if (!date.startsWith(String(year)) || !cats.includes(catId)) return;
+
+      const hours = Number(state.notes?.[date]?.[catId]?.hours || 0);
+
+      if (hours > 0) {
+        usedDays += hours / HOURS_PER_DAY;
+      } else {
+        usedDays += 1;
+      }
+    });
+
+    state.history
+      .filter(h => h.source !== "calendar" && h.category === catId && h.date.startsWith(String(year)))
+      .forEach(h => {
+        const hHours = Number(h.hours || 0);
+        usedDays += hHours > 0 ? hHours / HOURS_PER_DAY : 1;
+      });
+
+    return usedDays;
   }
 
   return Object.entries(state.calendar)
@@ -473,6 +511,7 @@ function renderSummary(){
       let remaining = Math.max(total - used, 0);
       let percent = total > 0 ? Math.min((used / total) * 100, 100) : 0;
       let color = getColor(cat.id);
+      let unit = cat.type === "hours" ? "h" : "d";
 
       let card = document.createElement("div");
       card.className = "card summary-card";
@@ -492,7 +531,7 @@ function renderSummary(){
         </div>
 
         <div class="summary-value" style="color:${color};">
-          ${remaining}${cat.type === "hours" ? "h" : "d"}
+          ${formatAmount(remaining)}${unit}
         </div>
 
         <div class="progress-bar">
@@ -500,7 +539,7 @@ function renderSummary(){
         </div>
 
         <div class="summary-small">
-          Usados ${used} / ${total}
+          Usados ${formatAmount(used)} / ${formatAmount(total)}
         </div>
       `;
 
