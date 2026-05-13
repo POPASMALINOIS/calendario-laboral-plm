@@ -1,5 +1,8 @@
 const categories = [
   { id: "turno_manana", name: "TURNO MAÑANA", tag: "TM", type: "days", countable: false, color: "#2563eb" },
+  { id: "turno_tarde", name: "TURNO TARDE", tag: "TT", type: "days", countable: false, color: "#f97316" },
+  { id: "turno_noche", name: "TURNO NOCHE", tag: "TN", type: "days", countable: false, color: "#1e293b" },
+
   { id: "vacaciones", name: "VACACIONES", tag: "VAC", type: "days", countable: true, color: "#22c55e" },
   { id: "dia_blanco", name: "DÍA BLANCO", tag: "DB", type: "days", countable: true, color: "#64748b" },
   { id: "dia_blanco_movil", name: "DÍA BLANCO MÓVIL", tag: "DBM", type: "days", countable: true, color: "#a855f7" },
