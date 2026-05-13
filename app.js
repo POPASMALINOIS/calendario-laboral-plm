@@ -497,14 +497,42 @@ function renderColors(){
 
     row.innerHTML=`
       <div>
-        <span class="color-preview" style="background:${color}"></span>
+        <span class="color-preview" id="preview-${cat.id}" style="background:${color}"></span>
         <strong>${cat.name}</strong>
       </div>
-      <input type="color" id="color-${cat.id}" value="${color}">
+
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;">
+        <input 
+          type="color" 
+          id="color-${cat.id}" 
+          value="${color}" 
+          style="width:1px;height:1px;opacity:0;position:absolute;"
+          onchange="previewColor('${cat.id}', this.value)"
+        >
+        <button 
+          type="button" 
+          class="secondary" 
+          style="padding:8px 12px;font-size:13px;border-radius:999px;"
+          onclick="document.getElementById('color-${cat.id}').click()"
+        >
+          Editar
+        </button>
+      </div>
     `;
 
     box.appendChild(row);
   });
+}
+
+function previewColor(catId, value){
+  state.colors[catId]=value;
+
+  let preview=document.getElementById(`preview-${catId}`);
+  if(preview) preview.style.background=value;
+
+  saveState();
+  renderCalendar();
+  renderSummary();
 }
 
 function saveColors(){
