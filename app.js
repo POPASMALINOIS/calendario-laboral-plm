@@ -971,7 +971,6 @@ const originalRenderAll = renderAll;
 renderAll = function() {
   originalRenderAll();
   renderReminders();
-  renderQuickWidget();
   applyDarkMode();
 };
 
