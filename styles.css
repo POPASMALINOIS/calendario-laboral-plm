@@ -857,3 +857,59 @@ select{
     margin-top:1px;
   }
 }
+/* =========================
+   LEYENDA PDF ANUAL MINI
+========================= */
+
+@media print{
+  .print-legend{
+    margin-top:12px;
+    padding-top:8px;
+    border-top:1px solid #d1d5db;
+    page-break-inside:avoid;
+  }
+
+  .print-legend h3{
+    margin:0 0 6px;
+    font-size:11px;
+    text-align:center;
+    font-weight:800;
+  }
+
+  .print-legend-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:4px 8px;
+    font-size:7px;
+  }
+
+  .print-legend-item{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    line-height:1.1;
+  }
+
+  .print-legend-color{
+    width:9px;
+    height:9px;
+    min-width:9px;
+    border-radius:2px;
+    display:inline-block;
+    border:0.5px solid #666;
+  }
+
+  .print-legend-item strong{
+    font-size:7px;
+  }
+
+  .print-day.has{
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+
+  .print-legend-color{
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+}
