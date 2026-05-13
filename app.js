@@ -1135,3 +1135,83 @@ window.addEventListener("load", () => {
 
   checkReminders();
 });
+function removeCalendarCategory(dateKey, categoryId){
+  if (state.calendar[dateKey]) {
+    state.calendar[dateKey] = state.calendar[dateKey].filter(c => c !== categoryId);
+
+    if (!state.calendar[dateKey].length) {
+      delete state.calendar[dateKey];
+    }
+  }
+
+  if (state.notes[dateKey] && state.notes[dateKey][categoryId]) {
+    delete state.notes[dateKey][categoryId];
+
+    if (Object.keys(state.notes[dateKey]).length === 0) {
+      delete state.notes[dateKey];
+    }
+  }
+
+  state.history = state.history.filter(h => {
+    return !(h.source === "calendar" && h.date === dateKey && h.category === categoryId);
+  });
+}
+
+function deleteModalEntry(){
+  if (!editingDateKey) return;
+
+  const catId = document.getElementById("modalCategory").value;
+
+  if (!catId) return;
+
+  if (!confirm("¿Quieres eliminar esta categoría o evento del día?")) return;
+
+  removeCalendarCategory(editingDateKey, catId);
+
+  saveState();
+  closeEditModal();
+  renderCalendar();
+  renderHistoryList();
+  renderSummary();
+}
+
+function renderHistoryList(){
+  const box = document.getElementById("historyList");
+  if (!box) return;
+
+  if (!state.history || !state.history.length) {
+    box.innerHTML = `<div class="small">No hay eventos guardados todavía.</div>`;
+    return;
+  }
+
+  box.innerHTML = state.history.map(item => {
+    return `
+      <div class="list-item">
+        <strong>${item.date}</strong>
+        <div>${getCategoryName(item.category)}${item.hours ? ` · ${item.hours} h` : ""}</div>
+        <div class="small">${item.note || "Sin observaciones"}</div>
+        <div class="small">${item.source === "calendar" ? "Evento del calendario" : "Registro manual"}</div>
+        <br>
+        <button class="danger" onclick="deleteHistoryItem('${item.id}')">Eliminar</button>
+      </div>
+    `;
+  }).join("");
+}
+
+function deleteHistoryItem(id){
+  const item = state.history.find(h => String(h.id) === String(id));
+  if (!item) return;
+
+  if (!confirm("¿Quieres eliminar este registro?")) return;
+
+  state.history = state.history.filter(h => String(h.id) !== String(id));
+
+  if (item.source === "calendar" && item.date && item.category) {
+    removeCalendarCategory(item.date, item.category);
+  }
+
+  saveState();
+  renderCalendar();
+  renderHistoryList();
+  renderSummary();
+}
