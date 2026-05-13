@@ -20,40 +20,50 @@ let state = JSON.parse(localStorage.getItem("laboralAppPLM") || "null") || {
   extras: [],
   colors: {},
   notes: {},
+  reminders: [],
   view: "month"
 };
 
+state.calendar ||= {};
+state.counters ||= {};
+state.history ||= [];
+state.extras ||= [];
+state.colors ||= {};
+state.notes ||= {};
+state.reminders ||= [];
+state.view ||= "month";
+
 let selectedCategory = categories[0].id;
 let currentDate = new Date();
-if(currentDate.getFullYear() < 2026) currentDate = new Date(2026,0,1);
-if(currentDate.getFullYear() > 2032) currentDate = new Date(2032,11,31);
+if (currentDate.getFullYear() < 2026) currentDate = new Date(2026,0,1);
+if (currentDate.getFullYear() > 2032) currentDate = new Date(2032,11,31);
 
 let summaryYear = currentDate.getFullYear();
 let editingDateKey = null;
 let longPressTimer = null;
 let longPressTriggered = false;
 
-function saveState() {
+function saveState(){
   localStorage.setItem("laboralAppPLM", JSON.stringify(state));
 }
 
-function getColor(id) {
+function getColor(id){
   return state.colors[id] || categories.find(c => c.id === id)?.color || "#2563eb";
 }
 
-function formatDate(d) {
+function formatDate(d){
   return d.getFullYear() + "-" +
     String(d.getMonth() + 1).padStart(2, "0") + "-" +
     String(d.getDate()).padStart(2, "0");
 }
 
-function addDays(d, n) {
+function addDays(d,n){
   let x = new Date(d);
   x.setDate(x.getDate() + n);
   return x;
 }
 
-function showTab(id, btn) {
+function showTab(id,btn){
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 
@@ -63,26 +73,26 @@ function showTab(id, btn) {
   renderAll();
 }
 
-function renderYearSelectors() {
-  ["summaryYear","counterYear","calendarYearSelect"].forEach(id=>{
-    let el=document.getElementById(id);
-    if(!el || el.children.length) return;
+function renderYearSelectors(){
+  ["summaryYear","counterYear","calendarYearSelect"].forEach(id => {
+    let el = document.getElementById(id);
+    if (!el || el.children.length) return;
 
-    for(let y=2026;y<=2032;y++){
-      let opt=document.createElement("option");
-      opt.value=y;
-      opt.textContent=y;
+    for (let y = 2026; y <= 2032; y++) {
+      let opt = document.createElement("option");
+      opt.value = y;
+      opt.textContent = y;
       el.appendChild(opt);
     }
   });
 
-  document.getElementById("summaryYear").value=summaryYear;
-  document.getElementById("counterYear").value=summaryYear;
-  document.getElementById("calendarYearSelect").value=currentDate.getFullYear();
+  document.getElementById("summaryYear").value = summaryYear;
+  document.getElementById("counterYear").value = summaryYear;
+  document.getElementById("calendarYearSelect").value = currentDate.getFullYear();
 }
 
 function changeSummaryYear(y){
-  summaryYear=Number(y);
+  summaryYear = Number(y);
   renderSummary();
 }
 
@@ -92,40 +102,40 @@ function jumpToYear(y){
 }
 
 function renderCategorySelect(){
-  let select=document.getElementById("categorySelect");
-  if(!select) return;
+  let select = document.getElementById("categorySelect");
+  if (!select) return;
 
-  select.innerHTML="";
+  select.innerHTML = "";
 
-  categories.forEach(cat=>{
-    let opt=document.createElement("option");
-    opt.value=cat.id;
-    opt.textContent=cat.name;
+  categories.forEach(cat => {
+    let opt = document.createElement("option");
+    opt.value = cat.id;
+    opt.textContent = cat.name;
     select.appendChild(opt);
   });
 
-  select.value=selectedCategory;
+  select.value = selectedCategory;
 }
 
 function setSelectedCategory(v){
-  selectedCategory=v;
+  selectedCategory = v;
 }
 
 function setCalendarView(v){
-  state.view=v;
+  state.view = v;
   saveState();
   renderCalendar();
 }
 
 function changePeriod(n){
-  if(state.view==="year") currentDate.setFullYear(currentDate.getFullYear()+n);
-  if(state.view==="month") currentDate.setMonth(currentDate.getMonth()+n);
-  if(state.view==="week") currentDate.setDate(currentDate.getDate()+(n*7));
+  if (state.view === "year") currentDate.setFullYear(currentDate.getFullYear() + n);
+  if (state.view === "month") currentDate.setMonth(currentDate.getMonth() + n);
+  if (state.view === "week") currentDate.setDate(currentDate.getDate() + (n * 7));
 
-  if(currentDate.getFullYear()<2026) currentDate=new Date(2026,0,1);
-  if(currentDate.getFullYear()>2032) currentDate=new Date(2032,11,31);
+  if (currentDate.getFullYear() < 2026) currentDate = new Date(2026,0,1);
+  if (currentDate.getFullYear() > 2032) currentDate = new Date(2032,11,31);
 
-  document.getElementById("calendarYearSelect").value=currentDate.getFullYear();
+  document.getElementById("calendarYearSelect").value = currentDate.getFullYear();
 
   renderCalendar();
 }
@@ -136,96 +146,105 @@ function easter(y){
 }
 
 function holidays(y){
-  let h={},e=easter(y);
-  function add(k,n){h[k]=n;}
-  add(`${y}-01-01`,"Año Nuevo");
-  add(`${y}-01-06`,"Reyes");
-  add(formatDate(addDays(e,-3)),"Jueves Santo");
-  add(formatDate(addDays(e,-2)),"Viernes Santo");
-  add(`${y}-05-01`,"Trabajo");
-  add(`${y}-05-02`,"Madrid");
-  add(`${y}-08-15`,"Asunción");
-  add(`${y}-10-12`,"Fiesta Nacional");
-  add(`${y}-12-08`,"Inmaculada");
-  add(`${y}-12-25`,"Navidad");
+  let h = {}, e = easter(y);
+  function add(k,n){ h[k] = n; }
+
+  add(`${y}-01-01`, "Año Nuevo");
+  add(`${y}-01-06`, "Reyes");
+  add(formatDate(addDays(e,-3)), "Jueves Santo");
+  add(formatDate(addDays(e,-2)), "Viernes Santo");
+  add(`${y}-05-01`, "Trabajo");
+  add(`${y}-05-02`, "Madrid");
+  add(`${y}-08-15`, "Asunción");
+  add(`${y}-10-12`, "Fiesta Nacional");
+  add(`${y}-12-08`, "Inmaculada");
+  add(`${y}-12-25`, "Navidad");
+
   return h;
 }
 
 function attachPressEvents(el,key){
-  el.addEventListener("touchstart",()=>{
-    longPressTriggered=false;
-    longPressTimer=setTimeout(()=>{
-      longPressTriggered=true;
+  el.addEventListener("touchstart", () => {
+    longPressTriggered = false;
+    longPressTimer = setTimeout(() => {
+      longPressTriggered = true;
       openEditModal(key);
-    },650);
+    }, 650);
   });
 
-  el.addEventListener("touchend",()=>{
+  el.addEventListener("touchend", () => {
     clearTimeout(longPressTimer);
-    setTimeout(()=>longPressTriggered=false,100);
+    setTimeout(() => longPressTriggered = false, 100);
   });
 
-  el.addEventListener("mousedown",()=>{
-    longPressTriggered=false;
-    longPressTimer=setTimeout(()=>{
-      longPressTriggered=true;
+  el.addEventListener("mousedown", () => {
+    longPressTriggered = false;
+    longPressTimer = setTimeout(() => {
+      longPressTriggered = true;
       openEditModal(key);
-    },650);
+    }, 650);
   });
 
-  el.addEventListener("mouseup",()=>clearTimeout(longPressTimer));
+  el.addEventListener("mouseup", () => clearTimeout(longPressTimer));
 }
 
 function createDayCell(date, mini=false){
-  const key=formatDate(date);
-  const assigned=state.calendar[key]||[];
-  const holiday=holidays(date.getFullYear())[key];
-  const today=formatDate(new Date());
+  const key = formatDate(date);
+  const assigned = state.calendar[key] || [];
+  const holiday = holidays(date.getFullYear())[key];
+  const today = formatDate(new Date());
 
-  let cell=document.createElement("div");
-  cell.className=mini?"year-mini-day":"day";
+  let cell = document.createElement("div");
+  cell.className = mini ? "year-mini-day" : "day";
 
-  if(key===today) cell.classList.add("today");
+  if (key === today) cell.classList.add("today");
 
-  if(assigned.length){
+  if (assigned.length) {
     cell.classList.add("has");
 
-    let colors=assigned.map(id=>getColor(id));
+    let colors = assigned.map(id => getColor(id));
 
-    if(colors.length===1){
-      cell.style.background=colors[0];
-    }else{
-      let step=100/colors.length;
-      cell.style.background=`linear-gradient(135deg, ${colors.map((c,i)=>`${c} ${i*step}% ${(i+1)*step}%`).join(", ")})`;
+    if (colors.length === 1) {
+      cell.style.background = colors[0];
+    } else {
+      let step = 100 / colors.length;
+      cell.style.background = `linear-gradient(135deg, ${colors.map((c,i)=>`${c} ${i*step}% ${(i+1)*step}%`).join(", ")})`;
     }
   }
 
-  let num=document.createElement("div");
-  num.className="day-number"+(holiday?" holiday":"");
-  num.textContent=date.getDate();
+  let num = document.createElement("div");
+  num.className = "day-number" + (holiday ? " holiday" : "");
+  num.textContent = date.getDate();
   cell.appendChild(num);
 
-  if(!mini && holiday){
-    let h=document.createElement("div");
-    h.className="holiday-label";
-    h.textContent=holiday;
+  if (!mini && holiday) {
+    let h = document.createElement("div");
+    h.className = "holiday-label";
+    h.textContent = holiday;
     cell.appendChild(h);
   }
 
-  if(!mini){
-    assigned.forEach(id=>{
-      let cat=categories.find(c=>c.id===id);
-      if(!cat) return;
+  if (!mini) {
+    assigned.forEach(id => {
+      let cat = categories.find(c => c.id === id);
+      if (!cat) return;
 
-      let tag=document.createElement("span");
-      tag.className="tag";
-      tag.textContent=cat.tag;
+      let tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = cat.tag;
+
+      if (state.notes?.[key]?.[id]?.note) {
+        let dot = document.createElement("span");
+        dot.className = "note-dot";
+        tag.appendChild(dot);
+      }
+
       cell.appendChild(tag);
     });
   }
 
-  cell.onclick=()=>{
-    if(longPressTriggered) return;
+  cell.onclick = () => {
+    if (longPressTriggered) return;
     toggleDate(key);
   };
 
@@ -235,43 +254,43 @@ function createDayCell(date, mini=false){
 }
 
 function renderMonthCalendar(){
-  const container=document.getElementById("calendarContainer");
-  const title=document.getElementById("calendarTitle");
+  const container = document.getElementById("calendarContainer");
+  const title = document.getElementById("calendarTitle");
 
-  let y=currentDate.getFullYear();
-  let m=currentDate.getMonth();
+  let y = currentDate.getFullYear();
+  let m = currentDate.getMonth();
 
-  title.textContent=`${monthNames[m]} ${y}`;
-  container.innerHTML="";
+  title.textContent = `${monthNames[m]} ${y}`;
+  container.innerHTML = "";
 
-  let weekdays=document.createElement("div");
-  weekdays.className="weekdays";
+  let weekdays = document.createElement("div");
+  weekdays.className = "weekdays";
 
-  weekDays.forEach(w=>{
-    let d=document.createElement("div");
-    d.className="weekday";
-    d.textContent=w;
+  weekDays.forEach(w => {
+    let d = document.createElement("div");
+    d.className = "weekday";
+    d.textContent = w;
     weekdays.appendChild(d);
   });
 
   container.appendChild(weekdays);
 
-  let grid=document.createElement("div");
-  grid.className="calendar-grid";
+  let grid = document.createElement("div");
+  grid.className = "calendar-grid";
 
-  let first=new Date(y,m,1);
-  let last=new Date(y,m+1,0);
+  let first = new Date(y,m,1);
+  let last = new Date(y,m+1,0);
 
-  let start=first.getDay();
-  start=start===0?6:start-1;
+  let start = first.getDay();
+  start = start === 0 ? 6 : start - 1;
 
-  for(let i=0;i<start;i++){
-    let e=document.createElement("div");
-    e.className="day empty";
+  for (let i=0; i<start; i++) {
+    let e = document.createElement("div");
+    e.className = "day empty";
     grid.appendChild(e);
   }
 
-  for(let d=1;d<=last.getDate();d++){
+  for (let d=1; d<=last.getDate(); d++) {
     grid.appendChild(createDayCell(new Date(y,m,d)));
   }
 
@@ -279,33 +298,34 @@ function renderMonthCalendar(){
 }
 
 function renderWeekCalendar(){
-  const container=document.getElementById("calendarContainer");
-  const title=document.getElementById("calendarTitle");
+  const container = document.getElementById("calendarContainer");
+  const title = document.getElementById("calendarTitle");
 
-  container.innerHTML="";
+  container.innerHTML = "";
 
-  let base=new Date(currentDate);
-  let day=base.getDay()===0?6:base.getDay()-1;
-  let monday=addDays(base,-day);
+  let base = new Date(currentDate);
+  let day = base.getDay() === 0 ? 6 : base.getDay() - 1;
+  let monday = addDays(base,-day);
+  let sunday = addDays(monday,6);
 
-  title.textContent="Semana";
+  title.textContent = `${formatDate(monday)} / ${formatDate(sunday)}`;
 
-  let weekdays=document.createElement("div");
-  weekdays.className="weekdays";
+  let weekdays = document.createElement("div");
+  weekdays.className = "weekdays";
 
-  weekDays.forEach(w=>{
-    let d=document.createElement("div");
-    d.className="weekday";
-    d.textContent=w;
+  weekDays.forEach(w => {
+    let d = document.createElement("div");
+    d.className = "weekday";
+    d.textContent = w;
     weekdays.appendChild(d);
   });
 
   container.appendChild(weekdays);
 
-  let grid=document.createElement("div");
-  grid.className="calendar-grid";
+  let grid = document.createElement("div");
+  grid.className = "calendar-grid";
 
-  for(let i=0;i<7;i++){
+  for (let i=0; i<7; i++) {
     grid.appendChild(createDayCell(addDays(monday,i)));
   }
 
@@ -313,42 +333,42 @@ function renderWeekCalendar(){
 }
 
 function renderYearCalendar(){
-  const container=document.getElementById("calendarContainer");
-  const title=document.getElementById("calendarTitle");
+  const container = document.getElementById("calendarContainer");
+  const title = document.getElementById("calendarTitle");
 
-  let y=currentDate.getFullYear();
+  let y = currentDate.getFullYear();
 
-  title.textContent=y;
-  container.innerHTML="";
+  title.textContent = y;
+  container.innerHTML = "";
 
-  let yearGrid=document.createElement("div");
-  yearGrid.className="year-grid";
+  let yearGrid = document.createElement("div");
+  yearGrid.className = "year-grid";
 
-  for(let m=0;m<12;m++){
-    let box=document.createElement("div");
-    box.className="year-month";
+  for (let m=0; m<12; m++) {
+    let box = document.createElement("div");
+    box.className = "year-month";
 
-    let h=document.createElement("h4");
-    h.textContent=monthNames[m];
+    let h = document.createElement("h4");
+    h.textContent = monthNames[m];
     box.appendChild(h);
 
-    let grid=document.createElement("div");
-    grid.className="year-mini-grid";
+    let grid = document.createElement("div");
+    grid.className = "year-mini-grid";
 
-    let first=new Date(y,m,1);
-    let last=new Date(y,m+1,0);
+    let first = new Date(y,m,1);
+    let last = new Date(y,m+1,0);
 
-    let start=first.getDay();
-    start=start===0?6:start-1;
+    let start = first.getDay();
+    start = start === 0 ? 6 : start - 1;
 
-    for(let i=0;i<start;i++){
-      let e=document.createElement("div");
-      e.className="year-mini-day";
-      e.style.opacity="0";
+    for (let i=0; i<start; i++) {
+      let e = document.createElement("div");
+      e.className = "year-mini-day";
+      e.style.opacity = "0";
       grid.appendChild(e);
     }
 
-    for(let d=1;d<=last.getDate();d++){
+    for (let d=1; d<=last.getDate(); d++) {
       grid.appendChild(createDayCell(new Date(y,m,d),true));
     }
 
@@ -364,50 +384,56 @@ function renderCalendar(){
   document.getElementById("viewWeek").classList.toggle("active",state.view==="week");
   document.getElementById("viewYear").classList.toggle("active",state.view==="year");
 
-  if(state.view==="month") renderMonthCalendar();
-  if(state.view==="week") renderWeekCalendar();
-  if(state.view==="year") renderYearCalendar();
+  if (state.view === "month") renderMonthCalendar();
+  if (state.view === "week") renderWeekCalendar();
+  if (state.view === "year") renderYearCalendar();
 }
 
 function toggleDate(key){
-  if(!state.calendar[key]) state.calendar[key]=[];
+  if (!state.calendar[key]) state.calendar[key] = [];
 
-  if(state.calendar[key].includes(selectedCategory)){
-    state.calendar[key]=state.calendar[key].filter(x=>x!==selectedCategory);
-  }else{
+  if (state.calendar[key].includes(selectedCategory)) {
+    state.calendar[key] = state.calendar[key].filter(x => x !== selectedCategory);
+    if (state.notes[key]) delete state.notes[key][selectedCategory];
+  } else {
     state.calendar[key].push(selectedCategory);
 
-    let cat=categories.find(c=>c.id===selectedCategory);
+    let cat = categories.find(c => c.id === selectedCategory);
 
-    if(cat.type==="hours"){
-      let hours=prompt("¿Cuántas horas has gastado?","");
-      if(hours){
-        if(!state.notes[key]) state.notes[key]={};
+    if (cat.type === "hours") {
+      let hours = prompt("¿Cuántas horas has gastado?", "");
+      if (hours) {
+        if (!state.notes[key]) state.notes[key] = {};
 
-        state.notes[key][selectedCategory]={
-          hours:Number(hours)||0,
-          note:prompt("Observaciones:","")||""
+        let note = prompt("Observaciones:", "") || "";
+
+        state.notes[key][selectedCategory] = {
+          hours: Number(hours) || 0,
+          note
         };
+
+        syncCalendarEventToHistory(key, selectedCategory, Number(hours)||0, note);
       }
     }
   }
 
-  if(!state.calendar[key].length) delete state.calendar[key];
+  if (!state.calendar[key].length) delete state.calendar[key];
 
   saveState();
   renderCalendar();
   renderSummary();
+  renderHistoryList();
 }
 
 function calculateUsed(catId,year){
-  let cat=categories.find(c=>c.id===catId);
+  let cat = categories.find(c => c.id === catId);
 
-  if(cat.type==="hours"){
-    let total=0;
+  if (cat.type === "hours") {
+    let total = 0;
 
-    Object.entries(state.notes||{}).forEach(([date,items])=>{
-      if(date.startsWith(String(year)) && items[catId]){
-        total += Number(items[catId].hours||0);
+    Object.entries(state.notes || {}).forEach(([date,items]) => {
+      if (date.startsWith(String(year)) && items[catId]) {
+        total += Number(items[catId].hours || 0);
       }
     });
 
@@ -415,20 +441,19 @@ function calculateUsed(catId,year){
   }
 
   return Object.entries(state.calendar)
-    .filter(([date,cats])=>date.startsWith(String(year)) && cats.includes(catId))
+    .filter(([date,cats]) => date.startsWith(String(year)) && cats.includes(catId))
     .length;
 }
 
 function renderSummary(){
   const grid = document.getElementById("summaryGrid");
-  if(!grid) return;
+  if (!grid) return;
 
   grid.innerHTML = "";
 
   categories
     .filter(c => c.countable)
     .forEach(cat => {
-
       let used = calculateUsed(cat.id, summaryYear);
       let total = Number(state.counters?.[summaryYear]?.[cat.id] || 0);
       let remaining = Math.max(total - used, 0);
@@ -440,22 +465,10 @@ function renderSummary(){
 
       card.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <span style="
-            background:${color};
-            color:white;
-            font-size:10px;
-            font-weight:900;
-            padding:4px 8px;
-            border-radius:999px;
-          ">
+          <span style="background:${color};color:white;font-size:10px;font-weight:900;padding:4px 8px;border-radius:999px;">
             ${cat.tag}
           </span>
-
-          <span style="
-            font-size:11px;
-            color:var(--muted);
-            font-weight:800;
-          ">
+          <span style="font-size:11px;color:var(--muted);font-weight:800;">
             ${cat.type === "hours" ? "HORAS" : "DÍAS"}
           </span>
         </div>
@@ -469,10 +482,7 @@ function renderSummary(){
         </div>
 
         <div class="progress-bar">
-          <div class="progress-fill" style="
-            width:${percent}%;
-            background:${color};
-          "></div>
+          <div class="progress-fill" style="width:${percent}%;background:${color};"></div>
         </div>
 
         <div class="summary-small">
@@ -484,22 +494,21 @@ function renderSummary(){
     });
 }
 
-
 function renderCounters(){
-  let year=document.getElementById("counterYear").value;
-  let box=document.getElementById("counterInputs");
-  box.innerHTML="";
+  let year = document.getElementById("counterYear").value;
+  let box = document.getElementById("counterInputs");
+  box.innerHTML = "";
 
-  categories.filter(c=>c.countable).forEach(cat=>{
-    let value=state.counters?.[year]?.[cat.id]||0;
+  categories.filter(c => c.countable).forEach(cat => {
+    let value = state.counters?.[year]?.[cat.id] || 0;
 
-    let row=document.createElement("div");
-    row.className="counter-row";
+    let row = document.createElement("div");
+    row.className = "counter-row";
 
-    row.innerHTML=`
+    row.innerHTML = `
       <div>
         <strong>${cat.name}</strong>
-        <div class="small">${cat.type==="hours"?"Horas":"Días"} anuales</div>
+        <div class="small">${cat.type==="hours" ? "Horas" : "Días"} anuales</div>
       </div>
       <input type="number" step="0.25" id="counter-${cat.id}" value="${value}">
     `;
@@ -509,11 +518,11 @@ function renderCounters(){
 }
 
 function saveCounters(){
-  let year=document.getElementById("counterYear").value;
-  if(!state.counters[year]) state.counters[year]={};
+  let year = document.getElementById("counterYear").value;
+  if (!state.counters[year]) state.counters[year] = {};
 
-  categories.filter(c=>c.countable).forEach(cat=>{
-    state.counters[year][cat.id]=Number(document.getElementById(`counter-${cat.id}`).value||0);
+  categories.filter(c => c.countable).forEach(cat => {
+    state.counters[year][cat.id] = Number(document.getElementById(`counter-${cat.id}`).value || 0);
   });
 
   saveState();
@@ -521,19 +530,166 @@ function saveCounters(){
   alert("Contadores guardados");
 }
 
+function renderHistoryForm(){
+  let select = document.getElementById("historyCategory");
+  if (!select) return;
+
+  select.innerHTML = "";
+
+  categories
+    .filter(c => c.id !== "turno_manana")
+    .forEach(cat => {
+      let opt = document.createElement("option");
+      opt.value = cat.id;
+      opt.textContent = cat.name;
+      select.appendChild(opt);
+    });
+}
+
+function saveHistory(){
+  let date = document.getElementById("historyDate").value;
+  let category = document.getElementById("historyCategory").value;
+  let hours = Number(document.getElementById("historyHours").value || 0);
+  let note = document.getElementById("historyNote").value || "";
+
+  if (!date || !category) {
+    alert("Indica fecha y categoría.");
+    return;
+  }
+
+  let cat = categories.find(c => c.id === category);
+
+  if (cat.type === "hours" && hours <= 0) {
+    alert("Indica las horas.");
+    return;
+  }
+
+  state.history.unshift({
+    id: Date.now(),
+    date,
+    category,
+    hours: cat.type === "hours" ? hours : 0,
+    note,
+    source: "manual"
+  });
+
+  saveState();
+
+  document.getElementById("historyDate").value = "";
+  document.getElementById("historyHours").value = "";
+  document.getElementById("historyNote").value = "";
+
+  renderHistoryList();
+  renderSummary();
+}
+
+function syncCalendarEventToHistory(date, category, hours, note){
+  const eventId = `calendar-${date}-${category}`;
+  const existing = state.history.find(h => h.eventId === eventId);
+
+  const item = {
+    eventId,
+    id: eventId,
+    date,
+    category,
+    hours: Number(hours || 0),
+    note: note || "",
+    source: "calendar"
+  };
+
+  if (existing) {
+    existing.hours = item.hours;
+    existing.note = item.note;
+    existing.source = "calendar";
+  } else {
+    state.history.unshift(item);
+  }
+}
+
+function renderHistoryList(){
+  const box = document.getElementById("historyList");
+  if (!box) return;
+
+  if (!state.history || !state.history.length) {
+    box.innerHTML = `<div class="small">No hay eventos guardados todavía.</div>`;
+    return;
+  }
+
+  box.innerHTML = state.history.map(item => {
+    const cat = categories.find(c => c.id === item.category);
+    return `
+      <div class="list-item">
+        <strong>${item.date}</strong>
+        <div>${cat ? cat.name : item.category}${item.hours ? ` · ${item.hours} h` : ""}</div>
+        <div class="small">${item.note || "Sin observaciones"}</div>
+        <div class="small">${item.source === "calendar" ? "Evento del calendario" : "Registro manual"}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function saveExtra(){
+  let date = document.getElementById("extraDate").value;
+  let hours = Number(document.getElementById("extraHours").value || 0);
+  let note = document.getElementById("extraNote").value || "";
+
+  if (!date || !hours) {
+    alert("Indica fecha y horas.");
+    return;
+  }
+
+  state.extras.unshift({
+    id: Date.now(),
+    date,
+    hours,
+    note
+  });
+
+  saveState();
+
+  document.getElementById("extraDate").value = "";
+  document.getElementById("extraHours").value = "";
+  document.getElementById("extraNote").value = "";
+
+  renderExtraList();
+}
+
+function renderExtraList(){
+  const box = document.getElementById("extraList");
+  if (!box) return;
+
+  if (!state.extras || !state.extras.length) {
+    box.innerHTML = `<div class="small">No hay horas extra registradas.</div>`;
+    return;
+  }
+
+  const total = state.extras.reduce((sum,e) => sum + Number(e.hours || 0), 0);
+
+  box.innerHTML = `
+    <p><strong>Total acumulado:</strong> ${total} h</p>
+    ${state.extras.map(e => `
+      <div class="list-item">
+        <strong>${e.date}</strong>
+        <div>${e.hours} horas</div>
+        <div class="small">${e.note || "Sin observaciones"}</div>
+      </div>
+    `).join("")}
+  `;
+}
+
 function renderColors(){
-  let box=document.getElementById("colorSettings");
-  if(!box) return;
+  let box = document.getElementById("colorSettings");
+  if (!box) return;
 
-  box.innerHTML="";
+  box.innerHTML = "";
 
-  categories.forEach(cat=>{
-    let row=document.createElement("div");
-    row.className="color-row";
+  categories.forEach(cat => {
+    let row = document.createElement("div");
+    row.className = "color-row";
 
-    let color=getColor(cat.id);
+    let color = getColor(cat.id);
 
-    row.innerHTML=`
+    row.innerHTML = `
       <div>
         <span class="color-preview" id="preview-${cat.id}" style="background:${color}"></span>
         <strong>${cat.name}</strong>
@@ -562,11 +718,11 @@ function renderColors(){
   });
 }
 
-function previewColor(catId, value){
-  state.colors[catId]=value;
+function previewColor(catId,value){
+  state.colors[catId] = value;
 
-  let preview=document.getElementById(`preview-${catId}`);
-  if(preview) preview.style.background=value;
+  let preview = document.getElementById(`preview-${catId}`);
+  if (preview) preview.style.background = value;
 
   saveState();
   renderCalendar();
@@ -574,11 +730,9 @@ function previewColor(catId, value){
 }
 
 function saveColors(){
-  categories.forEach(cat=>{
-    let picker=document.getElementById(`color-${cat.id}`);
-    if(picker){
-      state.colors[cat.id]=picker.value;
-    }
+  categories.forEach(cat => {
+    let picker = document.getElementById(`color-${cat.id}`);
+    if (picker) state.colors[cat.id] = picker.value;
   });
 
   saveState();
@@ -586,44 +740,31 @@ function saveColors(){
   alert("Colores guardados");
 }
 
-function resetApp(){
-  if(confirm("¿Seguro que deseas borrar todos los datos?")){
-    localStorage.removeItem("laboralAppPLM");
-    location.reload();
-  }
-}
-
-function renderHistoryForm(){}
-function renderHistoryList(){}
-function saveHistory(){}
-function renderExtraList(){}
-function saveExtra(){}
-
 function openEditModal(key){
-  editingDateKey=key;
+  editingDateKey = key;
 
-  let modal=document.getElementById("editModal");
-  let select=document.getElementById("modalCategory");
+  let modal = document.getElementById("editModal");
+  let select = document.getElementById("modalCategory");
 
-  document.getElementById("modalTitle").textContent=`Editar ${key}`;
+  document.getElementById("modalTitle").textContent = `Editar ${key}`;
 
-  select.innerHTML="";
+  select.innerHTML = "";
 
-  categories.forEach(cat=>{
-    let opt=document.createElement("option");
-    opt.value=cat.id;
-    opt.textContent=cat.name;
+  categories.forEach(cat => {
+    let opt = document.createElement("option");
+    opt.value = cat.id;
+    opt.textContent = cat.name;
     select.appendChild(opt);
   });
 
-  select.value=(state.calendar[key] && state.calendar[key][0]) || categories[0].id;
+  select.value = (state.calendar[key] && state.calendar[key][0]) || selectedCategory || categories[0].id;
 
   toggleModalHours();
 
-  let current=state.notes?.[key]?.[select.value] || {};
+  let current = state.notes?.[key]?.[select.value] || {};
 
-  document.getElementById("modalHours").value=current.hours||"";
-  document.getElementById("modalNote").value=current.note||"";
+  document.getElementById("modalHours").value = current.hours || "";
+  document.getElementById("modalNote").value = current.note || "";
 
   modal.classList.add("active");
 }
@@ -633,54 +774,49 @@ function closeEditModal(){
 }
 
 function toggleModalHours(){
-  let catId=document.getElementById("modalCategory").value;
-  let cat=categories.find(c=>c.id===catId);
+  let catId = document.getElementById("modalCategory").value;
+  let cat = categories.find(c => c.id === catId);
 
-  document.getElementById("modalHoursRow").style.display=
-    cat.type==="hours" ? "block" : "none";
+  document.getElementById("modalHoursRow").style.display =
+    cat.type === "hours" ? "block" : "none";
+
+  if (editingDateKey) {
+    let current = state.notes?.[editingDateKey]?.[catId] || {};
+    document.getElementById("modalHours").value = current.hours || "";
+    document.getElementById("modalNote").value = current.note || "";
+  }
 }
 
 function saveEditModal(){
-  if(!editingDateKey) return;
+  if (!editingDateKey) return;
 
-  let catId=document.getElementById("modalCategory").value;
-  let note=document.getElementById("modalNote").value;
-  let hours=Number(document.getElementById("modalHours").value||0);
+  let catId = document.getElementById("modalCategory").value;
+  let note = document.getElementById("modalNote").value || "";
+  let hours = Number(document.getElementById("modalHours").value || 0);
 
-  if(!state.calendar[editingDateKey]) state.calendar[editingDateKey]=[];
+  if (!state.calendar[editingDateKey]) state.calendar[editingDateKey] = [];
 
-  if(!state.calendar[editingDateKey].includes(catId)){
+  if (!state.calendar[editingDateKey].includes(catId)) {
     state.calendar[editingDateKey].push(catId);
   }
 
-  if(!state.notes[editingDateKey]) state.notes[editingDateKey]={};
+  if (!state.notes[editingDateKey]) state.notes[editingDateKey] = {};
 
-  state.notes[editingDateKey][catId]={
+  state.notes[editingDateKey][catId] = {
     note,
     hours
   };
+
+  syncCalendarEventToHistory(editingDateKey, catId, hours, note);
 
   saveState();
   closeEditModal();
   renderCalendar();
   renderSummary();
+  renderHistoryList();
 }
 
-function renderAll(){
-  renderYearSelectors();
-  renderCategorySelect();
-  renderCalendar();
-  renderSummary();
-  renderCounters();
-  renderColors();
-}
-
-document.addEventListener("DOMContentLoaded",renderAll);
-/* =========================
-   EXPORTACIONES Y BACKUP
-========================= */
-
-function downloadFile(filename, content, type = "text/plain") {
+function downloadFile(filename, content, type="text/plain"){
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
 
@@ -692,31 +828,23 @@ function downloadFile(filename, content, type = "text/plain") {
   URL.revokeObjectURL(url);
 }
 
-/* CSV HISTÓRICO */
-function exportHistoryCSV() {
+function exportHistoryCSV(){
   if (!state.history || !state.history.length) {
     alert("No hay histórico para exportar.");
     return;
   }
 
-  let rows = ["Fecha,Categoría,Horas,Observaciones"];
+  let rows = ["Fecha,Categoría,Horas,Observaciones,Origen"];
 
   state.history.forEach(item => {
     const cat = categories.find(c => c.id === item.category)?.name || item.category;
-    rows.push(
-      `"${item.date}","${cat}","${item.hours || ""}","${(item.note || "").replace(/"/g,'""')}"`
-    );
+    rows.push(`"${item.date}","${cat}","${item.hours || ""}","${(item.note || "").replace(/"/g,'""')}","${item.source || ""}"`);
   });
 
-  downloadFile(
-    `historico_calendario_plm_${new Date().toISOString().slice(0,10)}.csv`,
-    rows.join("\n"),
-    "text/csv"
-  );
+  downloadFile(`historico_calendario_plm_${new Date().toISOString().slice(0,10)}.csv`, rows.join("\n"), "text/csv");
 }
 
-/* CSV HORAS EXTRA */
-function exportExtrasCSV() {
+function exportExtrasCSV(){
   if (!state.extras || !state.extras.length) {
     alert("No hay horas extra para exportar.");
     return;
@@ -725,20 +853,13 @@ function exportExtrasCSV() {
   let rows = ["Fecha,Horas,Observaciones"];
 
   state.extras.forEach(item => {
-    rows.push(
-      `"${item.date}","${item.hours}","${(item.note || "").replace(/"/g,'""')}"`
-    );
+    rows.push(`"${item.date}","${item.hours}","${(item.note || "").replace(/"/g,'""')}"`);
   });
 
-  downloadFile(
-    `horas_extra_plm_${new Date().toISOString().slice(0,10)}.csv`,
-    rows.join("\n"),
-    "text/csv"
-  );
+  downloadFile(`horas_extra_plm_${new Date().toISOString().slice(0,10)}.csv`, rows.join("\n"), "text/csv");
 }
 
-/* BACKUP JSON */
-function exportBackup() {
+function exportBackup(){
   downloadFile(
     `backup_calendario_plm_${new Date().toISOString().slice(0,10)}.json`,
     JSON.stringify(state, null, 2),
@@ -746,14 +867,13 @@ function exportBackup() {
   );
 }
 
-/* IMPORT BACKUP */
-function importBackup(event) {
+function importBackup(event){
   const file = event.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
 
-  reader.onload = function(e) {
+  reader.onload = function(e){
     try {
       const imported = JSON.parse(e.target.result);
 
@@ -762,6 +882,13 @@ function importBackup(event) {
       }
 
       state = imported;
+      state.history ||= [];
+      state.extras ||= [];
+      state.colors ||= {};
+      state.notes ||= {};
+      state.reminders ||= [];
+      state.view ||= "month";
+
       saveState();
       renderAll();
 
@@ -774,16 +901,11 @@ function importBackup(event) {
   reader.readAsText(file);
 }
 
-/* PDF / IMPRESIÓN */
-function exportPDF() {
+function exportPDF(){
   window.print();
 }
 
-/* =========================
-   NOTIFICACIONES
-========================= */
-
-function requestNotificationPermission() {
+function requestNotificationPermission(){
   if (!("Notification" in window)) {
     alert("Tu dispositivo no soporta notificaciones.");
     return;
@@ -803,65 +925,7 @@ function requestNotificationPermission() {
   });
 }
 
-/* RECORDATORIO LOCAL SIMPLE */
-function scheduleReminder(title, body, delayMs = 5000) {
-  if (Notification.permission !== "granted") return;
-
-  setTimeout(() => {
-    new Notification(title, { body });
-  }, delayMs);
-}
-
-/*
-Ejemplo:
-scheduleReminder(
-  "Recordatorio",
-  "Revisa tus días disponibles",
-  10000
-);
-*/
-/* =========================
-   MODO OSCURO
-========================= */
-
-function applyDarkMode() {
-  if (localStorage.getItem("plmDarkMode") === "true") {
-    document.body.classList.add("dark");
-  } else {
-    document.body.classList.remove("dark");
-  }
-}
-
-function toggleDarkMode() {
-  const enabled = document.body.classList.toggle("dark");
-  localStorage.setItem("plmDarkMode", enabled ? "true" : "false");
-}
-
-/* =========================
-   SPLASH SCREEN
-========================= */
-
-window.addEventListener("load", () => {
-  applyDarkMode();
-
-  const splash = document.getElementById("splashScreen");
-
-  setTimeout(() => {
-    if (splash) splash.classList.add("hidden");
-  }, 1800);
-
-  checkReminders();
-});
-
-/* =========================
-   RECORDATORIOS PROGRAMABLES
-========================= */
-
-if (!state.reminders) {
-  state.reminders = [];
-}
-
-function saveReminder() {
+function saveReminder(){
   const title = document.getElementById("reminderTitle").value.trim();
   const body = document.getElementById("reminderBody").value.trim();
   const date = document.getElementById("reminderDate").value;
@@ -890,52 +954,43 @@ function saveReminder() {
   alert("Recordatorio guardado.");
 }
 
-function renderReminders() {
+function renderReminders(){
   const box = document.getElementById("reminderList");
   if (!box) return;
-
-  box.innerHTML = "";
 
   if (!state.reminders.length) {
     box.innerHTML = `<div class="small">No hay recordatorios programados.</div>`;
     return;
   }
 
-  state.reminders
-    .sort((a,b)=>new Date(a.date)-new Date(b.date))
-    .forEach(rem => {
-      let item = document.createElement("div");
-      item.className = "list-item";
-
-      item.innerHTML = `
-        <strong>${rem.title}</strong><br>
-        <span class="small">${rem.body}</span><br>
-        <span class="small">${new Date(rem.date).toLocaleString()}</span><br><br>
+  box.innerHTML = state.reminders
+    .sort((a,b) => new Date(a.date) - new Date(b.date))
+    .map(rem => `
+      <div class="list-item">
+        <strong>${rem.title}</strong>
+        <div class="small">${rem.body}</div>
+        <div class="small">${new Date(rem.date).toLocaleString()}</div>
+        <br>
         <button class="danger" onclick="deleteReminder(${rem.id})">Eliminar</button>
-      `;
-
-      box.appendChild(item);
-    });
+      </div>
+    `).join("");
 }
 
-function deleteReminder(id) {
+function deleteReminder(id){
   state.reminders = state.reminders.filter(r => r.id !== id);
   saveState();
   renderReminders();
 }
 
-function checkReminders() {
+function checkReminders(){
   if (!state.reminders || !state.reminders.length) return;
 
   const now = new Date();
 
   state.reminders.forEach(rem => {
     if (!rem.triggered && new Date(rem.date) <= now) {
-
       if (Notification.permission === "granted") {
-        new Notification(rem.title, {
-          body: rem.body
-        });
+        new Notification(rem.title, { body: rem.body });
       } else {
         alert(`${rem.title}\n\n${rem.body}`);
       }
@@ -948,67 +1003,50 @@ function checkReminders() {
   renderReminders();
 }
 
-/* =========================
-   WIDGET PREMIUM
-========================= */
-
-function renderQuickWidget() {
-  const box = document.getElementById("quickWidget");
-  if (!box) return;
-
-  let totalCategories = categories.filter(c => c.countable).length;
-
-  let totalRemaining = categories
-    .filter(c => c.countable)
-    .reduce((sum, cat) => {
-      let used = calculateUsed(cat.id, summaryYear);
-      let total = Number(state.counters?.[summaryYear]?.[cat.id] || 0);
-      return sum + Math.max(total - used, 0);
-    }, 0);
-
-  let extras = (state.extras || []).reduce((sum, e) => sum + Number(e.hours || 0), 0);
-
-  let pendingReminder = state.reminders
-    ?.filter(r => !r.triggered)
-    ?.sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
-
-  box.innerHTML = `
-    <div class="widget-grid">
-      <div class="widget-item">
-        <div class="widget-value">${totalRemaining}</div>
-        <div class="widget-label">Disponibles</div>
-      </div>
-
-      <div class="widget-item">
-        <div class="widget-value">${extras}</div>
-        <div class="widget-label">Horas extra</div>
-      </div>
-
-      <div class="widget-item">
-        <div class="widget-value">${totalCategories}</div>
-        <div class="widget-label">Categorías</div>
-      </div>
-    </div>
-
-    ${
-      pendingReminder
-      ? `<div class="reminder-chip">
-          Próximo: ${pendingReminder.title} · ${new Date(pendingReminder.date).toLocaleDateString()}
-        </div>`
-      : ""
-    }
-  `;
+function applyDarkMode(){
+  if (localStorage.getItem("plmDarkMode") === "true") {
+    document.body.classList.add("dark");
+  } else {
+    document.body.classList.remove("dark");
+  }
 }
 
-/* =========================
-   MEJORA GLOBAL
-========================= */
+function toggleDarkMode(){
+  const enabled = document.body.classList.toggle("dark");
+  localStorage.setItem("plmDarkMode", enabled ? "true" : "false");
+}
 
-const originalRenderAll = renderAll;
+function resetApp(){
+  if (confirm("¿Seguro que deseas borrar todos los datos?")) {
+    localStorage.removeItem("laboralAppPLM");
+    location.reload();
+  }
+}
 
-renderAll = function() {
-  originalRenderAll();
+function renderAll(){
+  renderYearSelectors();
+  renderCategorySelect();
+  renderCalendar();
+  renderSummary();
+  renderCounters();
+  renderHistoryForm();
+  renderHistoryList();
+  renderExtraList();
+  renderColors();
   renderReminders();
   applyDarkMode();
-};
+}
 
+document.addEventListener("DOMContentLoaded", renderAll);
+
+window.addEventListener("load", () => {
+  applyDarkMode();
+
+  const splash = document.getElementById("splashScreen");
+
+  setTimeout(() => {
+    if (splash) splash.classList.add("hidden");
+  }, 1400);
+
+  checkReminders();
+});
