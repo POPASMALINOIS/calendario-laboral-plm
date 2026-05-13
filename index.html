@@ -16,8 +16,7 @@ header{padding:18px 16px 10px;position:sticky;top:0;background:var(--bg);z-index
 h1{margin:0;font-size:24px;font-weight:900}
 header p{margin:4px 0 0;color:var(--muted)}
 main{padding:12px}
-.tab{display:none}
-.tab.active{display:block}
+.tab{display:none}.tab.active{display:block}
 .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 10px 25px rgba(15,23,42,.08)}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .summary-title{font-size:12px;font-weight:800;color:var(--muted)}
@@ -40,7 +39,7 @@ label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bot
 .calendar-title{text-align:center;font-weight:900;text-transform:capitalize}
 .weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .weekday{text-align:center;font-size:11px;font-weight:900;color:var(--muted);padding:4px 0}
-.day{min-height:72px;background:white;border:1px solid var(--border);border-radius:14px;padding:5px;overflow:hidden}
+.day{min-height:72px;background:white;border:1px solid var(--border);border-radius:14px;padding:5px;overflow:hidden;user-select:none}
 .day.empty{opacity:0;pointer-events:none}
 .day.has{color:white;border-color:transparent}
 .day-number{font-size:12px;font-weight:900}
@@ -48,6 +47,7 @@ label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bot
 .day.has .holiday,.day.has .holiday-label{color:white}
 .holiday-label{font-size:8px;color:#dc2626;font-weight:800;line-height:1.1}
 .tag{display:inline-block;font-size:9px;font-weight:900;padding:2px 5px;border-radius:999px;background:rgba(0,0,0,.3);color:white;margin:2px 2px 0 0}
+.note-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:white;margin-left:4px}
 .year-grid{display:grid;gap:14px}
 .year-month{background:white;border:1px solid var(--border);border-radius:16px;padding:10px}
 .year-month h4{margin:0 0 8px;text-transform:capitalize}
@@ -55,6 +55,8 @@ label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bot
 .year-mini-day{min-height:32px;border-radius:8px;background:#f8fafc;font-size:10px;text-align:center;padding:3px;overflow:hidden}
 .year-mini-day.has{color:white;font-weight:900}
 .counter-row,.color-row{display:grid;grid-template-columns:1fr 95px;gap:10px;align-items:center;margin-bottom:12px}
+.color-preview{width:28px;height:28px;border-radius:8px;border:1px solid var(--border);display:inline-block;margin-right:8px;vertical-align:middle}
+input[type="color"]{height:44px;padding:4px}
 .list-item{padding:10px 0;border-bottom:1px solid var(--border)}
 .small{font-size:12px;color:var(--muted)}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:70px;background:rgba(255,255,255,.95);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
@@ -87,13 +89,11 @@ label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bot
 <button id="viewWeek" onclick="setCalendarView('week')">Semanal</button>
 <button id="viewYear" onclick="setCalendarView('year')">Anual</button>
 </div>
-
 <div class="toolbar">
 <button class="secondary" onclick="changePeriod(-1)">‹</button>
 <div class="calendar-title" id="calendarTitle"></div>
 <button class="secondary" onclick="changePeriod(1)">›</button>
 </div>
-
 <div id="calendarContainer"></div>
 </div>
 </section>
@@ -146,6 +146,7 @@ label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bot
 <script>
 const categories=[
 {id:"turno_manana",name:"TURNO MAÑANA",tag:"TM",type:"days",countable:false,color:"#2563eb"},
+{id:"vacaciones",name:"VACACIONES",tag:"VAC",type:"days",countable:true,color:"#0ea5e9"},
 {id:"dia_blanco",name:"DÍA BLANCO",tag:"DB",type:"days",countable:true,color:"#64748b"},
 {id:"dia_blanco_movil",name:"DÍA BLANCO MÓVIL",tag:"DBM",type:"days",countable:true,color:"#059669"},
 {id:"dia_blanco_trabajar",name:"DÍA BLANCO TRABAJAR",tag:"DBT",type:"days",countable:true,color:"#f97316"},
@@ -158,9 +159,19 @@ const categories=[
 const monthNames=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const weekDays=["L","M","X","J","V","S","D"];
 
-let state=JSON.parse(localStorage.getItem("laboralAppPLM")||"null")||{calendar:{},counters:{},history:[],extras:[],colors:{},view:"month"};
+let state=JSON.parse(localStorage.getItem("laboralAppPLM")||"null")||{calendar:{},counters:{},history:[],extras:[],colors:{},notes:{},view:"month"};
+if(!state.notes)state.notes={};
+if(!state.colors)state.colors={};
+if(!state.calendar)state.calendar={};
+if(!state.counters)state.counters={};
+if(!state.history)state.history=[];
+if(!state.extras)state.extras=[];
+if(!state.view)state.view="month";
+
 let selectedCategory="turno_manana";
 let currentDate=new Date(2026,0,1);
+let longPressTimer=null;
+let longPressTriggered=false;
 
 function saveState(){localStorage.setItem("laboralAppPLM",JSON.stringify(state))}
 function getColor(id){let c=categories.find(x=>x.id===id);return state.colors[id]||(c?c.color:"#1f3a5f")}
@@ -177,13 +188,12 @@ renderAll();
 
 function renderCategorySelect(){
 let s=document.getElementById("categorySelect");s.innerHTML="";
-let o=document.createElement("option");o.value="";o.textContent="BORRAR CATEGORÍAS DEL DÍA";s.appendChild(o);
 categories.forEach(c=>{let op=document.createElement("option");op.value=c.id;op.textContent=c.name;s.appendChild(op)});
 s.value=selectedCategory;
 }
 
 function setSelectedCategory(v){selectedCategory=v}
-function clearSelectedCategory(){selectedCategory="";document.getElementById("categorySelect").value=""}
+function clearSelectedCategory(){selectedCategory=""}
 
 function setCalendarView(v){state.view=v;saveState();renderCalendar()}
 function changePeriod(n){
@@ -216,8 +226,27 @@ weekDays.forEach(x=>{let d=document.createElement("div");d.className="weekday";d
 container.appendChild(w);
 }
 
+function attachPressEvents(el,key){
+el.addEventListener("touchstart",function(){
+longPressTriggered=false;
+longPressTimer=setTimeout(function(){longPressTriggered=true;editDayDetails(key)},650);
+},{passive:true});
+
+el.addEventListener("touchend",function(){
+clearTimeout(longPressTimer);
+setTimeout(function(){longPressTriggered=false},50);
+},{passive:true});
+
+el.addEventListener("mousedown",function(){
+longPressTriggered=false;
+longPressTimer=setTimeout(function(){longPressTriggered=true;editDayDetails(key)},650);
+});
+
+el.addEventListener("mouseup",function(){clearTimeout(longPressTimer)});
+}
+
 function cell(date,mini){
-let key=formatDate(date),assigned=state.calendar[key]||[],hs=holidays(date.getFullYear()),holiday=hs[key];
+let key=formatDate(date),assigned=state.calendar[key]||[],hs=holidays(date.getFullYear()),holiday=hs[key],note=state.notes[key];
 let el=document.createElement("div");el.className=mini?"year-mini-day":"day";
 if(assigned.length){
 el.classList.add("has");
@@ -226,8 +255,11 @@ el.style.background=colors.length===1?colors[0]:"linear-gradient(135deg,"+colors
 }
 let n=document.createElement("div");n.className="day-number"+(holiday?" holiday":"");n.textContent=date.getDate();el.appendChild(n);
 if(!mini&&holiday){let h=document.createElement("div");h.className="holiday-label";h.textContent=holiday;el.appendChild(h)}
-if(!mini){assigned.forEach(id=>{let c=categories.find(x=>x.id===id);if(c){let t=document.createElement("span");t.className="tag";t.textContent=c.tag;el.appendChild(t)}})}
-el.onclick=function(){toggleDate(key)};
+if(!mini){
+assigned.forEach(id=>{let c=categories.find(x=>x.id===id);if(c){let t=document.createElement("span");t.className="tag";t.textContent=c.tag;if(note&&note[id]){let dot=document.createElement("span");dot.className="note-dot";t.appendChild(dot)}el.appendChild(t)}})
+}
+el.onclick=function(){if(longPressTriggered)return;toggleDate(key)};
+attachPressEvents(el,key);
 return el;
 }
 
@@ -277,16 +309,73 @@ c.appendChild(yg);
 
 function toggleDate(key){
 if(!state.calendar[key])state.calendar[key]=[];
-if(!selectedCategory)state.calendar[key]=[];
-else if(state.calendar[key].includes(selectedCategory))state.calendar[key]=state.calendar[key].filter(x=>x!==selectedCategory);
-else state.calendar[key].push(selectedCategory);
-if(!state.calendar[key].length)delete state.calendar[key];
+
+if(!selectedCategory){
+state.calendar[key]=[];
+delete state.notes[key];
+} else if(state.calendar[key].includes(selectedCategory)){
+state.calendar[key]=state.calendar[key].filter(x=>x!==selectedCategory);
+if(state.notes[key])delete state.notes[key][selectedCategory];
+} else {
+state.calendar[key].push(selectedCategory);
+let cat=categories.find(c=>c.id===selectedCategory);
+if(cat&&cat.type==="hours"){
+let hours=prompt("¿Cuántas horas has gastado?", "");
+if(hours===null||hours===""){state.calendar[key]=state.calendar[key].filter(x=>x!==selectedCategory)}
+else{
+let note=prompt("Observaciones para este día:", "")||"";
+if(!state.notes[key])state.notes[key]={};
+state.notes[key][selectedCategory]={hours:Number(hours)||0,note:note};
+}
+}
+}
+
+if(state.calendar[key]&&!state.calendar[key].length)delete state.calendar[key];
 saveState();renderCalendar();renderSummary();
+}
+
+function editDayDetails(key){
+let assigned=state.calendar[key]||[];
+if(!assigned.length){alert("Ese día no tiene categorías marcadas.");return}
+
+let names=assigned.map((id,i)=>`${i+1}. ${categories.find(c=>c.id===id)?.name||id}`).join("\n");
+let choice=prompt("Editar categoría del día:\n"+names+"\n\nIndica número:", "1");
+if(!choice)return;
+
+let index=Number(choice)-1;
+let catId=assigned[index];
+let cat=categories.find(c=>c.id===catId);
+if(!cat)return;
+
+if(!state.notes[key])state.notes[key]={};
+let current=state.notes[key][catId]||{hours:0,note:""};
+
+let note=prompt("Observaciones:", current.note||"");
+if(note===null)return;
+
+let hours=current.hours||0;
+if(cat.type==="hours"){
+let h=prompt("Horas gastadas:", current.hours||"");
+if(h===null)return;
+hours=Number(h)||0;
+}
+
+state.notes[key][catId]={hours:hours,note:note};
+saveState();
+renderCalendar();
+renderSummary();
 }
 
 function used(catId,y){
 let cat=categories.find(c=>c.id===catId);
-if(cat.type==="hours")return state.history.filter(h=>h.category===catId&&h.date.startsWith(String(y))).reduce((s,h)=>s+Number(h.hours||0),0);
+if(cat.type==="hours"){
+let total=0;
+Object.entries(state.notes||{}).forEach(([date,items])=>{
+if(date.startsWith(String(y))&&items[catId])total+=Number(items[catId].hours||0);
+});
+total+=state.history.filter(h=>h.category===catId&&h.date.startsWith(String(y))).reduce((s,h)=>s+Number(h.hours||0),0);
+return total;
+}
 return Object.entries(state.calendar).filter(([d,cats])=>d.startsWith(String(y))&&cats.includes(catId)).length;
 }
 
@@ -301,6 +390,7 @@ g.appendChild(div);
 }
 
 function renderCounterYears(){let s=document.getElementById("counterYear");if(s.children.length)return;for(let y=2026;y<=2032;y++){let o=document.createElement("option");o.value=y;o.textContent=y;s.appendChild(o)}}
+
 function renderCounters(){
 renderCounterYears();let y=document.getElementById("counterYear").value||"2026",box=document.getElementById("counterInputs");box.innerHTML="";
 categories.filter(c=>c.countable).forEach(cat=>{
@@ -308,6 +398,7 @@ let v=(state.counters[y]&&state.counters[y][cat.id])||0;
 let r=document.createElement("div");r.className="counter-row";r.innerHTML=`<div><strong>${cat.name}</strong><div class="small">${cat.type==="hours"?"Horas anuales":"Días anuales"}</div></div><input type="number" step="0.25" id="counter-${cat.id}" value="${v}">`;box.appendChild(r);
 });
 }
+
 function saveCounters(){
 let y=document.getElementById("counterYear").value;if(!state.counters[y])state.counters[y]={};
 categories.filter(c=>c.countable).forEach(cat=>state.counters[y][cat.id]=Number(document.getElementById("counter-"+cat.id).value||0));
@@ -315,12 +406,14 @@ saveState();renderSummary();alert("Contadores guardados");
 }
 
 function renderHistoryForm(){let s=document.getElementById("historyCategory");s.innerHTML="";categories.filter(c=>c.id!=="turno_manana").forEach(c=>{let o=document.createElement("option");o.value=c.id;o.textContent=c.name;s.appendChild(o)})}
+
 function saveHistory(){
 let date=document.getElementById("historyDate").value,category=document.getElementById("historyCategory").value,hours=Number(document.getElementById("historyHours").value||0),note=document.getElementById("historyNote").value;
 if(!date||!category){alert("Indica fecha y categoría");return}
 let cat=categories.find(c=>c.id===category);if(cat.type==="hours"&&hours<=0){alert("Indica horas");return}
 state.history.unshift({date,category,hours:cat.type==="hours"?hours:0,note});saveState();renderHistoryList();renderSummary();
 }
+
 function renderHistoryList(){
 let box=document.getElementById("historyList");if(!state.history.length){box.innerHTML='<p class="small">No hay registros todavía.</p>';return}
 box.innerHTML=state.history.map(i=>{let c=categories.find(x=>x.id===i.category);return `<div class="list-item"><strong>${i.date}</strong><div>${c?c.name:""}${i.hours?` — ${i.hours} h`:""}</div><div class="small">${i.note||""}</div></div>`}).join("");
@@ -331,6 +424,7 @@ let date=document.getElementById("extraDate").value,hours=Number(document.getEle
 if(!date||!hours){alert("Indica fecha y horas");return}
 state.extras.unshift({date,hours,note});saveState();renderExtraList();
 }
+
 function renderExtraList(){
 let box=document.getElementById("extraList");if(!state.extras.length){box.innerHTML='<p class="small">No hay horas extra registradas.</p>';return}
 let total=state.extras.reduce((s,i)=>s+Number(i.hours||0),0);
@@ -339,8 +433,14 @@ box.innerHTML=`<p><strong>Total acumulado:</strong> ${total} h</p>`+state.extras
 
 function renderColors(){
 let box=document.getElementById("colorSettings");box.innerHTML="";
-categories.forEach(c=>{let r=document.createElement("div");r.className="color-row";r.innerHTML=`<strong>${c.name}</strong><input type="color" id="color-${c.id}" value="${getColor(c.id)}">`;box.appendChild(r)});
+categories.forEach(c=>{
+let r=document.createElement("div");r.className="color-row";
+let color=getColor(c.id);
+r.innerHTML=`<strong><span class="color-preview" style="background:${color}"></span>${c.name}</strong><input type="color" id="color-${c.id}" value="${color}" style="background:${color}" oninput="this.style.background=this.value">`;
+box.appendChild(r);
+});
 }
+
 function saveColors(){categories.forEach(c=>state.colors[c.id]=document.getElementById("color-"+c.id).value);saveState();renderAll();alert("Colores guardados")}
 function resetApp(){if(confirm("¿Seguro que quieres borrar todos los datos?")){localStorage.removeItem("laboralAppPLM");location.reload()}}
 
