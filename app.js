@@ -586,14 +586,12 @@ function renderHistoryForm(){
   eventOpt.textContent = "EVENTO";
   select.appendChild(eventOpt);
 
-  categories
-    .filter(c => c.id !== "turno_manana")
-    .forEach(cat => {
-      let opt = document.createElement("option");
-      opt.value = cat.id;
-      opt.textContent = cat.name;
-      select.appendChild(opt);
-    });
+  categories.forEach(cat => {
+    let opt = document.createElement("option");
+    opt.value = cat.id;
+    opt.textContent = cat.name;
+    select.appendChild(opt);
+  });
 }
 
 function saveHistory(){
