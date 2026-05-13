@@ -781,23 +781,15 @@ function renderColors(){
         <strong>${cat.name}</strong>
       </div>
 
-      <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;">
+      <label class="color-edit-btn">
+        Editar
         <input 
           type="color" 
           id="color-${cat.id}" 
-          value="${color}" 
-          style="width:1px;height:1px;opacity:0;position:absolute;"
+          value="${color}"
           onchange="previewColor('${cat.id}', this.value)"
         >
-        <button 
-          type="button" 
-          class="secondary" 
-          style="padding:8px 12px;font-size:13px;border-radius:999px;"
-          onclick="document.getElementById('color-${cat.id}').click()"
-        >
-          Editar
-        </button>
-      </div>
+      </label>
     `;
 
     box.appendChild(row);
