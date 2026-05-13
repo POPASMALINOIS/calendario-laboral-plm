@@ -63,6 +63,11 @@ input[type="color"]{height:44px;padding:4px}
 .nav-btn{background:transparent;color:var(--muted);border-radius:0;padding:7px 2px;font-size:10px;font-weight:900}
 .nav-btn span{display:block;font-size:18px}
 .nav-btn.active{background:var(--soft);color:var(--primary)}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;display:none;align-items:flex-end;padding:12px}
+.modal-backdrop.active{display:flex}
+.modal{background:white;border-radius:22px;padding:16px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal h3{margin:0 0 12px;font-size:18px}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 @media(max-width:390px){.grid{grid-template-columns:1fr}.day{min-height:62px}.nav-btn{font-size:9px}}
 </style>
 </head>
@@ -80,7 +85,6 @@ input[type="color"]{height:44px;padding:4px}
 <div class="card">
 <label>Categoría activa</label>
 <select id="categorySelect" onchange="setSelectedCategory(this.value)"></select>
-<button class="secondary full" onclick="clearSelectedCategory()">Modo borrar categoría</button>
 </div>
 
 <div class="card">
@@ -143,6 +147,32 @@ input[type="color"]{height:44px;padding:4px}
 <button class="nav-btn" onclick="showTab('ajustes',this)"><span>⚙️</span>Ajustes</button>
 </nav>
 
+<div id="editModal" class="modal-backdrop">
+  <div class="modal">
+    <h3 id="modalTitle">Editar día</h3>
+
+    <div class="form-row">
+      <label>Categoría</label>
+      <select id="modalCategory" onchange="toggleModalHours()"></select>
+    </div>
+
+    <div class="form-row" id="modalHoursRow">
+      <label>Horas gastadas</label>
+      <input type="number" step="0.25" id="modalHours">
+    </div>
+
+    <div class="form-row">
+      <label>Observaciones</label>
+      <textarea id="modalNote"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeEditModal()">Cancelar</button>
+      <button onclick="saveEditModal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const categories=[
 {id:"turno_manana",name:"TURNO MAÑANA",tag:"TM",type:"days",countable:false,color:"#2563eb"},
@@ -172,6 +202,7 @@ let selectedCategory="turno_manana";
 let currentDate=new Date(2026,0,1);
 let longPressTimer=null;
 let longPressTriggered=false;
+let editingDateKey=null;
 
 function saveState(){localStorage.setItem("laboralAppPLM",JSON.stringify(state))}
 function getColor(id){let c=categories.find(x=>x.id===id);return state.colors[id]||(c?c.color:"#1f3a5f")}
@@ -193,7 +224,6 @@ s.value=selectedCategory;
 }
 
 function setSelectedCategory(v){selectedCategory=v}
-function clearSelectedCategory(){selectedCategory=""}
 
 function setCalendarView(v){state.view=v;saveState();renderCalendar()}
 function changePeriod(n){
@@ -229,17 +259,17 @@ container.appendChild(w);
 function attachPressEvents(el,key){
 el.addEventListener("touchstart",function(){
 longPressTriggered=false;
-longPressTimer=setTimeout(function(){longPressTriggered=true;editDayDetails(key)},650);
+longPressTimer=setTimeout(function(){longPressTriggered=true;openEditModal(key)},650);
 },{passive:true});
 
 el.addEventListener("touchend",function(){
 clearTimeout(longPressTimer);
-setTimeout(function(){longPressTriggered=false},50);
+setTimeout(function(){longPressTriggered=false},80);
 },{passive:true});
 
 el.addEventListener("mousedown",function(){
 longPressTriggered=false;
-longPressTimer=setTimeout(function(){longPressTriggered=true;editDayDetails(key)},650);
+longPressTimer=setTimeout(function(){longPressTriggered=true;openEditModal(key)},650);
 });
 
 el.addEventListener("mouseup",function(){clearTimeout(longPressTimer)});
@@ -310,10 +340,7 @@ c.appendChild(yg);
 function toggleDate(key){
 if(!state.calendar[key])state.calendar[key]=[];
 
-if(!selectedCategory){
-state.calendar[key]=[];
-delete state.notes[key];
-} else if(state.calendar[key].includes(selectedCategory)){
+if(state.calendar[key].includes(selectedCategory)){
 state.calendar[key]=state.calendar[key].filter(x=>x!==selectedCategory);
 if(state.notes[key])delete state.notes[key][selectedCategory];
 } else {
@@ -334,34 +361,75 @@ if(state.calendar[key]&&!state.calendar[key].length)delete state.calendar[key];
 saveState();renderCalendar();renderSummary();
 }
 
-function editDayDetails(key){
+function openEditModal(key){
+editingDateKey=key;
 let assigned=state.calendar[key]||[];
-if(!assigned.length){alert("Ese día no tiene categorías marcadas.");return}
+let modal=document.getElementById("editModal");
+let select=document.getElementById("modalCategory");
+let title=document.getElementById("modalTitle");
 
-let names=assigned.map((id,i)=>`${i+1}. ${categories.find(c=>c.id===id)?.name||id}`).join("\n");
-let choice=prompt("Editar categoría del día:\n"+names+"\n\nIndica número:", "1");
-if(!choice)return;
+title.textContent="Editar " + key;
+select.innerHTML="";
 
-let index=Number(choice)-1;
-let catId=assigned[index];
-let cat=categories.find(c=>c.id===catId);
-if(!cat)return;
+let baseCategories=assigned.length?assigned:categories.map(c=>c.id);
 
-if(!state.notes[key])state.notes[key]={};
-let current=state.notes[key][catId]||{hours:0,note:""};
+baseCategories.forEach(id=>{
+let c=categories.find(x=>x.id===id);
+if(c){
+let op=document.createElement("option");
+op.value=c.id;
+op.textContent=c.name;
+select.appendChild(op);
+}
+});
 
-let note=prompt("Observaciones:", current.note||"");
-if(note===null)return;
+let first=select.value;
+let data=(state.notes[key]&&state.notes[key][first])?state.notes[key][first]:{hours:"",note:""};
+document.getElementById("modalHours").value=data.hours||"";
+document.getElementById("modalNote").value=data.note||"";
+toggleModalHours();
 
-let hours=current.hours||0;
-if(cat.type==="hours"){
-let h=prompt("Horas gastadas:", current.hours||"");
-if(h===null)return;
-hours=Number(h)||0;
+modal.classList.add("active");
 }
 
-state.notes[key][catId]={hours:hours,note:note};
+function toggleModalHours(){
+let catId=document.getElementById("modalCategory").value;
+let cat=categories.find(c=>c.id===catId);
+let row=document.getElementById("modalHoursRow");
+row.style.display=cat&&cat.type==="hours"?"block":"none";
+
+if(editingDateKey){
+let data=(state.notes[editingDateKey]&&state.notes[editingDateKey][catId])?state.notes[editingDateKey][catId]:{hours:"",note:""};
+document.getElementById("modalHours").value=data.hours||"";
+document.getElementById("modalNote").value=data.note||"";
+}
+}
+
+function closeEditModal(){
+editingDateKey=null;
+document.getElementById("editModal").classList.remove("active");
+}
+
+function saveEditModal(){
+if(!editingDateKey)return;
+
+let catId=document.getElementById("modalCategory").value;
+let cat=categories.find(c=>c.id===catId);
+let hours=Number(document.getElementById("modalHours").value||0);
+let note=document.getElementById("modalNote").value||"";
+
+if(!state.calendar[editingDateKey])state.calendar[editingDateKey]=[];
+if(!state.calendar[editingDateKey].includes(catId))state.calendar[editingDateKey].push(catId);
+if(!state.notes[editingDateKey])state.notes[editingDateKey]={};
+
+if(cat.type==="hours"){
+state.notes[editingDateKey][catId]={hours:hours,note:note};
+}else{
+state.notes[editingDateKey][catId]={hours:0,note:note};
+}
+
 saveState();
+closeEditModal();
 renderCalendar();
 renderSummary();
 }
