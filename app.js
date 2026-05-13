@@ -48,7 +48,21 @@ function saveState(){
 }
 
 function getColor(id){
+  if (id === "evento") return "#0f172a";
   return state.colors[id] || categories.find(c => c.id === id)?.color || "#2563eb";
+}
+
+function getCategoryName(id){
+  if (id === "evento") return "EVENTO";
+  return categories.find(c => c.id === id)?.name || id;
+}
+
+function getCategoryTag(id, dateKey){
+  if (id === "evento") {
+    const ev = state.notes?.[dateKey]?.evento;
+    return ev?.time ? `EV ${ev.time}` : "EV";
+  }
+  return categories.find(c => c.id === id)?.tag || id;
 }
 
 function formatDate(d){
@@ -226,14 +240,11 @@ function createDayCell(date, mini=false){
 
   if (!mini) {
     assigned.forEach(id => {
-      let cat = categories.find(c => c.id === id);
-      if (!cat) return;
-
       let tag = document.createElement("span");
       tag.className = "tag";
-      tag.textContent = cat.tag;
+      tag.textContent = getCategoryTag(id, key);
 
-      if (state.notes?.[key]?.[id]?.note) {
+      if (state.notes?.[key]?.[id]?.note || state.notes?.[key]?.[id]?.title) {
         let dot = document.createElement("span");
         dot.className = "note-dot";
         tag.appendChild(dot);
@@ -536,6 +547,11 @@ function renderHistoryForm(){
 
   select.innerHTML = "";
 
+  let eventOpt = document.createElement("option");
+  eventOpt.value = "evento";
+  eventOpt.textContent = "EVENTO";
+  select.appendChild(eventOpt);
+
   categories
     .filter(c => c.id !== "turno_manana")
     .forEach(cat => {
@@ -559,7 +575,7 @@ function saveHistory(){
 
   let cat = categories.find(c => c.id === category);
 
-  if (cat.type === "hours" && hours <= 0) {
+  if (cat && cat.type === "hours" && hours <= 0) {
     alert("Indica las horas.");
     return;
   }
@@ -568,7 +584,7 @@ function saveHistory(){
     id: Date.now(),
     date,
     category,
-    hours: cat.type === "hours" ? hours : 0,
+    hours: cat && cat.type === "hours" ? hours : 0,
     note,
     source: "manual"
   });
@@ -616,11 +632,10 @@ function renderHistoryList(){
   }
 
   box.innerHTML = state.history.map(item => {
-    const cat = categories.find(c => c.id === item.category);
     return `
       <div class="list-item">
         <strong>${item.date}</strong>
-        <div>${cat ? cat.name : item.category}${item.hours ? ` · ${item.hours} h` : ""}</div>
+        <div>${getCategoryName(item.category)}${item.hours ? ` · ${item.hours} h` : ""}</div>
         <div class="small">${item.note || "Sin observaciones"}</div>
         <div class="small">${item.source === "calendar" ? "Evento del calendario" : "Registro manual"}</div>
       </div>
@@ -750,6 +765,11 @@ function openEditModal(key){
 
   select.innerHTML = "";
 
+  let eventOpt = document.createElement("option");
+  eventOpt.value = "evento";
+  eventOpt.textContent = "EVENTO";
+  select.appendChild(eventOpt);
+
   categories.forEach(cat => {
     let opt = document.createElement("option");
     opt.value = cat.id;
@@ -757,7 +777,7 @@ function openEditModal(key){
     select.appendChild(opt);
   });
 
-  select.value = (state.calendar[key] && state.calendar[key][0]) || selectedCategory || categories[0].id;
+  select.value = (state.calendar[key] && state.calendar[key][0]) || selectedCategory || "evento";
 
   toggleModalHours();
 
@@ -765,6 +785,8 @@ function openEditModal(key){
 
   document.getElementById("modalHours").value = current.hours || "";
   document.getElementById("modalNote").value = current.note || "";
+  document.getElementById("modalEventTitle").value = current.title || "";
+  document.getElementById("modalEventTime").value = current.time || "";
 
   modal.classList.add("active");
 }
@@ -778,12 +800,20 @@ function toggleModalHours(){
   let cat = categories.find(c => c.id === catId);
 
   document.getElementById("modalHoursRow").style.display =
-    cat.type === "hours" ? "block" : "none";
+    cat && cat.type === "hours" ? "block" : "none";
+
+  document.getElementById("modalEventTitleRow").style.display =
+    catId === "evento" ? "block" : "none";
+
+  document.getElementById("modalEventTimeRow").style.display =
+    catId === "evento" ? "block" : "none";
 
   if (editingDateKey) {
     let current = state.notes?.[editingDateKey]?.[catId] || {};
     document.getElementById("modalHours").value = current.hours || "";
     document.getElementById("modalNote").value = current.note || "";
+    document.getElementById("modalEventTitle").value = current.title || "";
+    document.getElementById("modalEventTime").value = current.time || "";
   }
 }
 
@@ -793,21 +823,43 @@ function saveEditModal(){
   let catId = document.getElementById("modalCategory").value;
   let note = document.getElementById("modalNote").value || "";
   let hours = Number(document.getElementById("modalHours").value || 0);
+  let eventTitle = document.getElementById("modalEventTitle")?.value || "";
+  let eventTime = document.getElementById("modalEventTime")?.value || "";
 
   if (!state.calendar[editingDateKey]) state.calendar[editingDateKey] = [];
-
-  if (!state.calendar[editingDateKey].includes(catId)) {
-    state.calendar[editingDateKey].push(catId);
-  }
-
   if (!state.notes[editingDateKey]) state.notes[editingDateKey] = {};
 
-  state.notes[editingDateKey][catId] = {
-    note,
-    hours
-  };
+  if (catId === "evento") {
+    if (!state.calendar[editingDateKey].includes("evento")) {
+      state.calendar[editingDateKey].push("evento");
+    }
 
-  syncCalendarEventToHistory(editingDateKey, catId, hours, note);
+    state.notes[editingDateKey]["evento"] = {
+      title: eventTitle || "Evento",
+      time: eventTime,
+      note,
+      hours: 0
+    };
+
+    syncCalendarEventToHistory(
+      editingDateKey,
+      "evento",
+      0,
+      `${eventTime ? eventTime + " · " : ""}${eventTitle || "Evento"}${note ? " · " + note : ""}`
+    );
+
+  } else {
+    if (!state.calendar[editingDateKey].includes(catId)) {
+      state.calendar[editingDateKey].push(catId);
+    }
+
+    state.notes[editingDateKey][catId] = {
+      note,
+      hours
+    };
+
+    syncCalendarEventToHistory(editingDateKey, catId, hours, note);
+  }
 
   saveState();
   closeEditModal();
@@ -837,8 +889,7 @@ function exportHistoryCSV(){
   let rows = ["Fecha,Categoría,Horas,Observaciones,Origen"];
 
   state.history.forEach(item => {
-    const cat = categories.find(c => c.id === item.category)?.name || item.category;
-    rows.push(`"${item.date}","${cat}","${item.hours || ""}","${(item.note || "").replace(/"/g,'""')}","${item.source || ""}"`);
+    rows.push(`"${item.date}","${getCategoryName(item.category)}","${item.hours || ""}","${(item.note || "").replace(/"/g,'""')}","${item.source || ""}"`);
   });
 
   downloadFile(`historico_calendario_plm_${new Date().toISOString().slice(0,10)}.csv`, rows.join("\n"), "text/csv");
