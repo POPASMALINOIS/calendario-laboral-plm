@@ -420,32 +420,70 @@ function calculateUsed(catId,year){
 }
 
 function renderSummary(){
-  const grid=document.getElementById("summaryGrid");
+  const grid = document.getElementById("summaryGrid");
   if(!grid) return;
 
-  grid.innerHTML="";
+  grid.innerHTML = "";
 
-  categories.filter(c=>c.countable).forEach(cat=>{
-    let used=calculateUsed(cat.id,summaryYear);
-    let total=Number(state.counters?.[summaryYear]?.[cat.id]||0);
-    let remaining=total-used;
-    let percent=total>0?Math.min((used/total)*100,100):0;
+  categories
+    .filter(c => c.countable)
+    .forEach(cat => {
 
-    let card=document.createElement("div");
-    card.className="card summary-card";
+      let used = calculateUsed(cat.id, summaryYear);
+      let total = Number(state.counters?.[summaryYear]?.[cat.id] || 0);
+      let remaining = Math.max(total - used, 0);
+      let percent = total > 0 ? Math.min((used / total) * 100, 100) : 0;
+      let color = getColor(cat.id);
 
-    card.innerHTML=`
-      <div class="summary-title">${cat.name}</div>
-      <div class="summary-value">${remaining}${cat.type==="hours"?"h":"d"}</div>
-      <div class="progress-bar">
-        <div class="progress-fill" style="width:${percent}%;background:${getColor(cat.id)}"></div>
-      </div>
-      <div class="summary-small">${used}/${total} usados</div>
-    `;
+      let card = document.createElement("div");
+      card.className = "card summary-card";
 
-    grid.appendChild(card);
-  });
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="
+            background:${color};
+            color:white;
+            font-size:10px;
+            font-weight:900;
+            padding:4px 8px;
+            border-radius:999px;
+          ">
+            ${cat.tag}
+          </span>
+
+          <span style="
+            font-size:11px;
+            color:var(--muted);
+            font-weight:800;
+          ">
+            ${cat.type === "hours" ? "HORAS" : "DÍAS"}
+          </span>
+        </div>
+
+        <div class="summary-title" style="min-height:34px;">
+          ${cat.name}
+        </div>
+
+        <div class="summary-value" style="color:${color};">
+          ${remaining}${cat.type === "hours" ? "h" : "d"}
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" style="
+            width:${percent}%;
+            background:${color};
+          "></div>
+        </div>
+
+        <div class="summary-small">
+          Usados ${used} / ${total}
+        </div>
+      `;
+
+      grid.appendChild(card);
+    });
 }
+
 
 function renderCounters(){
   let year=document.getElementById("counterYear").value;
