@@ -24,8 +24,11 @@ let state = JSON.parse(localStorage.getItem("laboralAppPLM") || "null") || {
 };
 
 let selectedCategory = categories[0].id;
-let currentDate = new Date(2026, 0, 1);
-let summaryYear = 2026;
+let currentDate = new Date();
+if(currentDate.getFullYear() < 2026) currentDate = new Date(2026,0,1);
+if(currentDate.getFullYear() > 2032) currentDate = new Date(2032,11,31);
+
+let summaryYear = currentDate.getFullYear();
 let editingDateKey = null;
 let longPressTimer = null;
 let longPressTriggered = false;
@@ -61,100 +64,79 @@ function showTab(id, btn) {
 }
 
 function renderYearSelectors() {
-  const ids = ["summaryYear", "counterYear", "calendarYearSelect"];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el || el.children.length) return;
+  ["summaryYear","counterYear","calendarYearSelect"].forEach(id=>{
+    let el=document.getElementById(id);
+    if(!el || el.children.length) return;
 
-    for (let y = 2026; y <= 2032; y++) {
-      const opt = document.createElement("option");
-      opt.value = y;
-      opt.textContent = y;
+    for(let y=2026;y<=2032;y++){
+      let opt=document.createElement("option");
+      opt.value=y;
+      opt.textContent=y;
       el.appendChild(opt);
     }
   });
 
-  document.getElementById("summaryYear").value = summaryYear;
-  document.getElementById("counterYear").value = summaryYear;
-  document.getElementById("calendarYearSelect").value = currentDate.getFullYear();
+  document.getElementById("summaryYear").value=summaryYear;
+  document.getElementById("counterYear").value=summaryYear;
+  document.getElementById("calendarYearSelect").value=currentDate.getFullYear();
 }
 
-function renderMonthSelector() {
-  const select = document.getElementById("calendarMonthSelect");
-  if (!select || select.children.length) return;
-
-  monthNames.forEach((m, i) => {
-    const opt = document.createElement("option");
-    opt.value = i;
-    opt.textContent = m.charAt(0).toUpperCase() + m.slice(1);
-    select.appendChild(opt);
-  });
-
-  select.value = currentDate.getMonth();
-}
-
-function changeSummaryYear(y) {
-  summaryYear = Number(y);
+function changeSummaryYear(y){
+  summaryYear=Number(y);
   renderSummary();
 }
 
-function jumpToYear(y) {
+function jumpToYear(y){
   currentDate.setFullYear(Number(y));
   renderCalendar();
 }
 
-function jumpToMonth(m) {
-  currentDate.setMonth(Number(m));
-  renderCalendar();
-}
+function renderCategorySelect(){
+  let select=document.getElementById("categorySelect");
+  if(!select) return;
 
-function renderCategorySelect() {
-  const select = document.getElementById("categorySelect");
-  if (!select) return;
+  select.innerHTML="";
 
-  select.innerHTML = "";
-
-  categories.forEach(cat => {
-    const opt = document.createElement("option");
-    opt.value = cat.id;
-    opt.textContent = cat.name;
+  categories.forEach(cat=>{
+    let opt=document.createElement("option");
+    opt.value=cat.id;
+    opt.textContent=cat.name;
     select.appendChild(opt);
   });
 
-  select.value = selectedCategory;
+  select.value=selectedCategory;
 }
 
-function setSelectedCategory(v) {
-  selectedCategory = v;
+function setSelectedCategory(v){
+  selectedCategory=v;
 }
 
-function setCalendarView(v) {
-  state.view = v;
+function setCalendarView(v){
+  state.view=v;
   saveState();
   renderCalendar();
 }
 
-function changePeriod(n) {
-  if (state.view === "year") currentDate.setFullYear(currentDate.getFullYear() + n);
-  if (state.view === "month") currentDate.setMonth(currentDate.getMonth() + n);
-  if (state.view === "week") currentDate.setDate(currentDate.getDate() + (n * 7));
+function changePeriod(n){
+  if(state.view==="year") currentDate.setFullYear(currentDate.getFullYear()+n);
+  if(state.view==="month") currentDate.setMonth(currentDate.getMonth()+n);
+  if(state.view==="week") currentDate.setDate(currentDate.getDate()+(n*7));
 
-  if (currentDate.getFullYear() < 2026) currentDate = new Date(2026, 0, 1);
-  if (currentDate.getFullYear() > 2032) currentDate = new Date(2032, 11, 31);
+  if(currentDate.getFullYear()<2026) currentDate=new Date(2026,0,1);
+  if(currentDate.getFullYear()>2032) currentDate=new Date(2032,11,31);
 
-  document.getElementById("calendarYearSelect").value = currentDate.getFullYear();
-  document.getElementById("calendarMonthSelect").value = currentDate.getMonth();
+  document.getElementById("calendarYearSelect").value=currentDate.getFullYear();
 
   renderCalendar();
 }
 
-function easter(y) {
+function easter(y){
   let a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;
   return new Date(y,mo-1,da);
 }
 
-function holidays(y) {
-  let h = {}, e = easter(y);
+function holidays(y){
+  let h={},e=easter(y);
   function add(k,n){h[k]=n;}
   add(`${y}-01-01`,"Año Nuevo");
   add(`${y}-01-06`,"Reyes");
@@ -169,7 +151,7 @@ function holidays(y) {
   return h;
 }
 
-function attachPressEvents(el,key) {
+function attachPressEvents(el,key){
   el.addEventListener("touchstart",()=>{
     longPressTriggered=false;
     longPressTimer=setTimeout(()=>{
@@ -180,7 +162,7 @@ function attachPressEvents(el,key) {
 
   el.addEventListener("touchend",()=>{
     clearTimeout(longPressTimer);
-    setTimeout(()=>longPressTriggered=false,80);
+    setTimeout(()=>longPressTriggered=false,100);
   });
 
   el.addEventListener("mousedown",()=>{
@@ -194,55 +176,56 @@ function attachPressEvents(el,key) {
   el.addEventListener("mouseup",()=>clearTimeout(longPressTimer));
 }
 
-function createDayCell(date, mini=false) {
-  const key = formatDate(date);
-  const assigned = state.calendar[key] || [];
-  const holiday = holidays(date.getFullYear())[key];
+function createDayCell(date, mini=false){
+  const key=formatDate(date);
+  const assigned=state.calendar[key]||[];
+  const holiday=holidays(date.getFullYear())[key];
+  const today=formatDate(new Date());
 
-  let cell = document.createElement("div");
-  cell.className = mini ? "year-mini-day" : "day";
+  let cell=document.createElement("div");
+  cell.className=mini?"year-mini-day":"day";
 
-  if (assigned.length) {
+  if(key===today) cell.classList.add("today");
+
+  if(assigned.length){
     cell.classList.add("has");
 
-    const colors = assigned.map(id => getColor(id));
+    let colors=assigned.map(id=>getColor(id));
 
-    if (colors.length === 1) {
-      cell.style.background = colors[0];
-    } else {
-      const step = 100 / colors.length;
-      cell.style.background = `linear-gradient(135deg, ${
-        colors.map((c,i)=>`${c} ${i*step}% ${(i+1)*step}%`).join(", ")
-      })`;
+    if(colors.length===1){
+      cell.style.background=colors[0];
+    }else{
+      let step=100/colors.length;
+      cell.style.background=`linear-gradient(135deg, ${colors.map((c,i)=>`${c} ${i*step}% ${(i+1)*step}%`).join(", ")})`;
     }
   }
 
-  let num = document.createElement("div");
-  num.className = "day-number" + (holiday ? " holiday":"");
-  num.textContent = date.getDate();
+  let num=document.createElement("div");
+  num.className="day-number"+(holiday?" holiday":"");
+  num.textContent=date.getDate();
   cell.appendChild(num);
 
-  if (!mini && holiday) {
-    let h = document.createElement("div");
-    h.className = "holiday-label";
-    h.textContent = holiday;
+  if(!mini && holiday){
+    let h=document.createElement("div");
+    h.className="holiday-label";
+    h.textContent=holiday;
     cell.appendChild(h);
   }
 
-  if (!mini) {
-    assigned.forEach(id => {
-      const cat = categories.find(c => c.id === id);
-      if (!cat) return;
+  if(!mini){
+    assigned.forEach(id=>{
+      let cat=categories.find(c=>c.id===id);
+      if(!cat) return;
 
-      let tag = document.createElement("span");
-      tag.className = "tag";
-      tag.textContent = cat.tag;
+      let tag=document.createElement("span");
+      tag.className="tag";
+      tag.textContent=cat.tag;
       cell.appendChild(tag);
     });
   }
 
-  cell.onclick = () => {
-    if (longPressTriggered) return;
+  cell.onclick=()=>{
+    if(longPressTriggered) return;
     toggleDate(key);
   };
 
@@ -251,34 +234,36 @@ function createDayCell(date, mini=false) {
   return cell;
 }
 
-function renderMonthCalendar() {
-  const container = document.getElementById("calendarContainer");
-  const title = document.getElementById("calendarTitle");
+function renderMonthCalendar(){
+  const container=document.getElementById("calendarContainer");
+  const title=document.getElementById("calendarTitle");
 
-  let y = currentDate.getFullYear();
-  let m = currentDate.getMonth();
+  let y=currentDate.getFullYear();
+  let m=currentDate.getMonth();
 
-  title.textContent = monthNames[m] + " " + y;
-  container.innerHTML = "";
+  title.textContent=`${monthNames[m]} ${y}`;
+  container.innerHTML="";
 
-  let weekdays = document.createElement("div");
-  weekdays.className = "weekdays";
+  let weekdays=document.createElement("div");
+  weekdays.className="weekdays";
+
   weekDays.forEach(w=>{
     let d=document.createElement("div");
     d.className="weekday";
     d.textContent=w;
     weekdays.appendChild(d);
   });
+
   container.appendChild(weekdays);
 
-  let grid = document.createElement("div");
-  grid.className = "calendar-grid";
+  let grid=document.createElement("div");
+  grid.className="calendar-grid";
 
-  let first = new Date(y,m,1);
-  let last = new Date(y,m+1,0);
+  let first=new Date(y,m,1);
+  let last=new Date(y,m+1,0);
 
-  let start = first.getDay();
-  start = start===0 ? 6 : start-1;
+  let start=first.getDay();
+  start=start===0?6:start-1;
 
   for(let i=0;i<start;i++){
     let e=document.createElement("div");
@@ -286,32 +271,35 @@ function renderMonthCalendar() {
     grid.appendChild(e);
   }
 
-  for(let d=1; d<=last.getDate(); d++){
+  for(let d=1;d<=last.getDate();d++){
     grid.appendChild(createDayCell(new Date(y,m,d)));
   }
 
   container.appendChild(grid);
 }
 
-function renderWeekCalendar() {
-  const container = document.getElementById("calendarContainer");
-  const title = document.getElementById("calendarTitle");
-  container.innerHTML = "";
+function renderWeekCalendar(){
+  const container=document.getElementById("calendarContainer");
+  const title=document.getElementById("calendarTitle");
 
-  let base = new Date(currentDate);
-  let day = base.getDay()===0 ? 6 : base.getDay()-1;
-  let monday = addDays(base,-day);
+  container.innerHTML="";
 
-  title.textContent = "Semana";
+  let base=new Date(currentDate);
+  let day=base.getDay()===0?6:base.getDay()-1;
+  let monday=addDays(base,-day);
 
-  let weekdays = document.createElement("div");
+  title.textContent="Semana";
+
+  let weekdays=document.createElement("div");
   weekdays.className="weekdays";
+
   weekDays.forEach(w=>{
     let d=document.createElement("div");
     d.className="weekday";
     d.textContent=w;
     weekdays.appendChild(d);
   });
+
   container.appendChild(weekdays);
 
   let grid=document.createElement("div");
@@ -324,12 +312,13 @@ function renderWeekCalendar() {
   container.appendChild(grid);
 }
 
-function renderYearCalendar() {
-  const container = document.getElementById("calendarContainer");
-  const title = document.getElementById("calendarTitle");
+function renderYearCalendar(){
+  const container=document.getElementById("calendarContainer");
+  const title=document.getElementById("calendarTitle");
+
   let y=currentDate.getFullYear();
 
-  title.textContent = y;
+  title.textContent=y;
   container.innerHTML="";
 
   let yearGrid=document.createElement("div");
@@ -370,7 +359,7 @@ function renderYearCalendar() {
   container.appendChild(yearGrid);
 }
 
-function renderCalendar() {
+function renderCalendar(){
   document.getElementById("viewMonth").classList.toggle("active",state.view==="month");
   document.getElementById("viewWeek").classList.toggle("active",state.view==="week");
   document.getElementById("viewYear").classList.toggle("active",state.view==="year");
@@ -380,20 +369,21 @@ function renderCalendar() {
   if(state.view==="year") renderYearCalendar();
 }
 
-function toggleDate(key) {
+function toggleDate(key){
   if(!state.calendar[key]) state.calendar[key]=[];
 
   if(state.calendar[key].includes(selectedCategory)){
     state.calendar[key]=state.calendar[key].filter(x=>x!==selectedCategory);
-  } else {
+  }else{
     state.calendar[key].push(selectedCategory);
 
-    let cat = categories.find(c=>c.id===selectedCategory);
+    let cat=categories.find(c=>c.id===selectedCategory);
 
     if(cat.type==="hours"){
-      let hours = prompt("¿Cuántas horas has gastado?", "");
+      let hours=prompt("¿Cuántas horas has gastado?","");
       if(hours){
         if(!state.notes[key]) state.notes[key]={};
+
         state.notes[key][selectedCategory]={
           hours:Number(hours)||0,
           note:prompt("Observaciones:","")||""
@@ -409,8 +399,8 @@ function toggleDate(key) {
   renderSummary();
 }
 
-function calculateUsed(catId, year) {
-  const cat = categories.find(c=>c.id===catId);
+function calculateUsed(catId,year){
+  let cat=categories.find(c=>c.id===catId);
 
   if(cat.type==="hours"){
     let total=0;
@@ -429,43 +419,41 @@ function calculateUsed(catId, year) {
     .length;
 }
 
-function renderSummary() {
-  const grid = document.getElementById("summaryGrid");
+function renderSummary(){
+  const grid=document.getElementById("summaryGrid");
   if(!grid) return;
 
   grid.innerHTML="";
 
   categories.filter(c=>c.countable).forEach(cat=>{
-    let used = calculateUsed(cat.id, summaryYear);
-    let total = Number(state.counters?.[summaryYear]?.[cat.id] || 0);
-    let remaining = total - used;
-    let percent = total>0 ? Math.min((used/total)*100,100) : 0;
+    let used=calculateUsed(cat.id,summaryYear);
+    let total=Number(state.counters?.[summaryYear]?.[cat.id]||0);
+    let remaining=total-used;
+    let percent=total>0?Math.min((used/total)*100,100):0;
 
     let card=document.createElement("div");
     card.className="card summary-card";
 
     card.innerHTML=`
       <div class="summary-title">${cat.name}</div>
-      <div class="summary-value">${remaining} ${cat.type==="hours"?"h":"d"}</div>
+      <div class="summary-value">${remaining}${cat.type==="hours"?"h":"d"}</div>
       <div class="progress-bar">
-        <div class="progress-fill" style="width:${percent}%; background:${getColor(cat.id)}"></div>
+        <div class="progress-fill" style="width:${percent}%;background:${getColor(cat.id)}"></div>
       </div>
-      <div class="summary-small">
-        ${used} de ${total} ${cat.type==="hours"?"horas":"días"} usados
-      </div>
+      <div class="summary-small">${used}/${total} usados</div>
     `;
 
     grid.appendChild(card);
   });
 }
 
-function renderCounters() {
-  let year = document.getElementById("counterYear").value;
-  let box = document.getElementById("counterInputs");
+function renderCounters(){
+  let year=document.getElementById("counterYear").value;
+  let box=document.getElementById("counterInputs");
   box.innerHTML="";
 
   categories.filter(c=>c.countable).forEach(cat=>{
-    let value = state.counters?.[year]?.[cat.id] || 0;
+    let value=state.counters?.[year]?.[cat.id]||0;
 
     let row=document.createElement("div");
     row.className="counter-row";
@@ -482,7 +470,7 @@ function renderCounters() {
   });
 }
 
-function saveCounters() {
+function saveCounters(){
   let year=document.getElementById("counterYear").value;
   if(!state.counters[year]) state.counters[year]={};
 
@@ -495,13 +483,43 @@ function saveCounters() {
   alert("Contadores guardados");
 }
 
-function renderHistoryForm(){/* mantiene lógica previa si ya existe */}
-function renderHistoryList(){/* mantiene lógica previa */}
-function saveHistory(){/* mantiene lógica previa */}
-function renderExtraList(){/* mantiene lógica previa */}
-function saveExtra(){/* mantiene lógica previa */}
-function renderColors(){/* mantiene lógica previa */}
-function saveColors(){/* mantiene lógica previa */}
+function renderColors(){
+  let box=document.getElementById("colorSettings");
+  if(!box) return;
+
+  box.innerHTML="";
+
+  categories.forEach(cat=>{
+    let row=document.createElement("div");
+    row.className="color-row";
+
+    let color=getColor(cat.id);
+
+    row.innerHTML=`
+      <div>
+        <span class="color-preview" style="background:${color}"></span>
+        <strong>${cat.name}</strong>
+      </div>
+      <input type="color" id="color-${cat.id}" value="${color}">
+    `;
+
+    box.appendChild(row);
+  });
+}
+
+function saveColors(){
+  categories.forEach(cat=>{
+    let picker=document.getElementById(`color-${cat.id}`);
+    if(picker){
+      state.colors[cat.id]=picker.value;
+    }
+  });
+
+  saveState();
+  renderAll();
+  alert("Colores guardados");
+}
+
 function resetApp(){
   if(confirm("¿Seguro que deseas borrar todos los datos?")){
     localStorage.removeItem("laboralAppPLM");
@@ -509,20 +527,86 @@ function resetApp(){
   }
 }
 
-function openEditModal(key){/* mantiene lógica previa */}
+function renderHistoryForm(){}
+function renderHistoryList(){}
+function saveHistory(){}
+function renderExtraList(){}
+function saveExtra(){}
+
+function openEditModal(key){
+  editingDateKey=key;
+
+  let modal=document.getElementById("editModal");
+  let select=document.getElementById("modalCategory");
+
+  document.getElementById("modalTitle").textContent=`Editar ${key}`;
+
+  select.innerHTML="";
+
+  categories.forEach(cat=>{
+    let opt=document.createElement("option");
+    opt.value=cat.id;
+    opt.textContent=cat.name;
+    select.appendChild(opt);
+  });
+
+  select.value=(state.calendar[key] && state.calendar[key][0]) || categories[0].id;
+
+  toggleModalHours();
+
+  let current=state.notes?.[key]?.[select.value] || {};
+
+  document.getElementById("modalHours").value=current.hours||"";
+  document.getElementById("modalNote").value=current.note||"";
+
+  modal.classList.add("active");
+}
+
 function closeEditModal(){
   document.getElementById("editModal").classList.remove("active");
 }
-function toggleModalHours(){/* mantiene lógica previa */}
-function saveEditModal(){/* mantiene lógica previa */}
 
-function renderAll() {
+function toggleModalHours(){
+  let catId=document.getElementById("modalCategory").value;
+  let cat=categories.find(c=>c.id===catId);
+
+  document.getElementById("modalHoursRow").style.display=
+    cat.type==="hours" ? "block" : "none";
+}
+
+function saveEditModal(){
+  if(!editingDateKey) return;
+
+  let catId=document.getElementById("modalCategory").value;
+  let note=document.getElementById("modalNote").value;
+  let hours=Number(document.getElementById("modalHours").value||0);
+
+  if(!state.calendar[editingDateKey]) state.calendar[editingDateKey]=[];
+
+  if(!state.calendar[editingDateKey].includes(catId)){
+    state.calendar[editingDateKey].push(catId);
+  }
+
+  if(!state.notes[editingDateKey]) state.notes[editingDateKey]={};
+
+  state.notes[editingDateKey][catId]={
+    note,
+    hours
+  };
+
+  saveState();
+  closeEditModal();
+  renderCalendar();
+  renderSummary();
+}
+
+function renderAll(){
   renderYearSelectors();
-  renderMonthSelector();
   renderCategorySelect();
   renderCalendar();
   renderSummary();
   renderCounters();
+  renderColors();
 }
 
-document.addEventListener("DOMContentLoaded", renderAll);
+document.addEventListener("DOMContentLoaded",renderAll);
