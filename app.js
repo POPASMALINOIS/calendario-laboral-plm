@@ -638,3 +638,148 @@ function renderAll(){
 }
 
 document.addEventListener("DOMContentLoaded",renderAll);
+/* =========================
+   EXPORTACIONES Y BACKUP
+========================= */
+
+function downloadFile(filename, content, type = "text/plain") {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+/* CSV HISTÓRICO */
+function exportHistoryCSV() {
+  if (!state.history || !state.history.length) {
+    alert("No hay histórico para exportar.");
+    return;
+  }
+
+  let rows = ["Fecha,Categoría,Horas,Observaciones"];
+
+  state.history.forEach(item => {
+    const cat = categories.find(c => c.id === item.category)?.name || item.category;
+    rows.push(
+      `"${item.date}","${cat}","${item.hours || ""}","${(item.note || "").replace(/"/g,'""')}"`
+    );
+  });
+
+  downloadFile(
+    `historico_calendario_plm_${new Date().toISOString().slice(0,10)}.csv`,
+    rows.join("\n"),
+    "text/csv"
+  );
+}
+
+/* CSV HORAS EXTRA */
+function exportExtrasCSV() {
+  if (!state.extras || !state.extras.length) {
+    alert("No hay horas extra para exportar.");
+    return;
+  }
+
+  let rows = ["Fecha,Horas,Observaciones"];
+
+  state.extras.forEach(item => {
+    rows.push(
+      `"${item.date}","${item.hours}","${(item.note || "").replace(/"/g,'""')}"`
+    );
+  });
+
+  downloadFile(
+    `horas_extra_plm_${new Date().toISOString().slice(0,10)}.csv`,
+    rows.join("\n"),
+    "text/csv"
+  );
+}
+
+/* BACKUP JSON */
+function exportBackup() {
+  downloadFile(
+    `backup_calendario_plm_${new Date().toISOString().slice(0,10)}.json`,
+    JSON.stringify(state, null, 2),
+    "application/json"
+  );
+}
+
+/* IMPORT BACKUP */
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+
+      if (!imported.calendar || !imported.counters) {
+        throw new Error("Formato inválido");
+      }
+
+      state = imported;
+      saveState();
+      renderAll();
+
+      alert("Copia restaurada correctamente.");
+    } catch (err) {
+      alert("Error al importar copia de seguridad.");
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+/* PDF / IMPRESIÓN */
+function exportPDF() {
+  window.print();
+}
+
+/* =========================
+   NOTIFICACIONES
+========================= */
+
+function requestNotificationPermission() {
+  if (!("Notification" in window)) {
+    alert("Tu dispositivo no soporta notificaciones.");
+    return;
+  }
+
+  Notification.requestPermission().then(permission => {
+    if (permission === "granted") {
+      alert("Notificaciones activadas correctamente.");
+
+      new Notification("Calendario Laboral PLM", {
+        body: "Recordatorios activados correctamente."
+      });
+
+    } else {
+      alert("Permiso de notificaciones denegado.");
+    }
+  });
+}
+
+/* RECORDATORIO LOCAL SIMPLE */
+function scheduleReminder(title, body, delayMs = 5000) {
+  if (Notification.permission !== "granted") return;
+
+  setTimeout(() => {
+    new Notification(title, { body });
+  }, delayMs);
+}
+
+/*
+Ejemplo:
+scheduleReminder(
+  "Recordatorio",
+  "Revisa tus días disponibles",
+  10000
+);
+*/
+
