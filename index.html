@@ -13,7 +13,6 @@
 
 <body>
 
-<!-- SPLASH -->
 <div id="splashScreen">
   <div class="splash-logo">📅</div>
   <div class="splash-title">Calendario Laboral PLM</div>
@@ -22,7 +21,6 @@
 
 <main>
 
-<!-- RESUMEN -->
 <section id="resumen" class="tab active">
   <div class="page-title">Calendario Laboral PLM</div>
   <div class="page-subtitle">Resumen general anual</div>
@@ -35,13 +33,9 @@
   <div class="grid" id="summaryGrid"></div>
 </section>
 
-<!-- CALENDARIO -->
 <section id="calendario" class="tab">
-
   <div class="card">
-
     <div class="calendar-controls">
-
       <div>
         <label>Año</label>
         <select id="calendarYearSelect" onchange="jumpToYear(this.value)"></select>
@@ -51,7 +45,6 @@
         <label>Categoría activa</label>
         <select id="categorySelect" onchange="setSelectedCategory(this.value)"></select>
       </div>
-
     </div>
 
     <div class="view-switch">
@@ -67,11 +60,9 @@
     </div>
 
     <div id="calendarContainer"></div>
-
   </div>
 </section>
 
-<!-- CONTADORES -->
 <section id="contadores" class="tab">
   <div class="page-title">Contadores</div>
 
@@ -81,11 +72,9 @@
   </div>
 
   <div class="card" id="counterInputs"></div>
-
   <button class="full" onclick="saveCounters()">Guardar contadores</button>
 </section>
 
-<!-- HISTÓRICO -->
 <section id="historico" class="tab">
   <div class="page-title">Histórico</div>
 
@@ -122,7 +111,6 @@
   </div>
 </section>
 
-<!-- HORAS EXTRA -->
 <section id="horas" class="tab">
   <div class="page-title">Horas extra</div>
 
@@ -154,7 +142,6 @@
   </div>
 </section>
 
-<!-- AJUSTES -->
 <section id="ajustes" class="tab">
   <div class="page-title">Personalización</div>
 
@@ -214,42 +201,33 @@
 
 </main>
 
-<!-- NAV -->
 <nav class="bottom-nav">
-  <button class="nav-btn active" onclick="showTab('resumen',this)">
-    <span>🏠</span>Inicio
-  </button>
-
-  <button class="nav-btn" onclick="showTab('calendario',this)">
-    <span>📅</span>Calend.
-  </button>
-
-  <button class="nav-btn" onclick="showTab('contadores',this)">
-    <span>📊</span>Cont.
-  </button>
-
-  <button class="nav-btn" onclick="showTab('historico',this)">
-    <span>🗂️</span>Hist.
-  </button>
-
-  <button class="nav-btn" onclick="showTab('horas',this)">
-    <span>⏱️</span>Horas
-  </button>
-
-  <button class="nav-btn" onclick="showTab('ajustes',this)">
-    <span>⚙️</span>Ajustes
-  </button>
+  <button class="nav-btn active" onclick="showTab('resumen',this)"><span>🏠</span>Inicio</button>
+  <button class="nav-btn" onclick="showTab('calendario',this)"><span>📅</span>Calend.</button>
+  <button class="nav-btn" onclick="showTab('contadores',this)"><span>📊</span>Cont.</button>
+  <button class="nav-btn" onclick="showTab('historico',this)"><span>🗂️</span>Hist.</button>
+  <button class="nav-btn" onclick="showTab('horas',this)"><span>⏱️</span>Horas</button>
+  <button class="nav-btn" onclick="showTab('ajustes',this)"><span>⚙️</span>Ajustes</button>
 </nav>
 
-<!-- MODAL -->
 <div id="editModal" class="modal-backdrop">
   <div class="modal">
 
     <h3 id="modalTitle">Editar día</h3>
 
     <div class="form-row">
-      <label>Categoría</label>
+      <label>Categoría / Evento</label>
       <select id="modalCategory" onchange="toggleModalHours()"></select>
+    </div>
+
+    <div class="form-row" id="modalEventTitleRow" style="display:none;">
+      <label>Título del evento</label>
+      <input type="text" id="modalEventTitle" placeholder="Ej. Peluquería">
+    </div>
+
+    <div class="form-row" id="modalEventTimeRow" style="display:none;">
+      <label>Hora del evento</label>
+      <input type="time" id="modalEventTime">
     </div>
 
     <div class="form-row" id="modalHoursRow">
@@ -270,7 +248,7 @@
   </div>
 </div>
 
-<script src="app.js?v=30"></script>
+<script src="app.js?v=40"></script>
 
 <script>
 if("serviceWorker" in navigator){
