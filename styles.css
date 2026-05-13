@@ -1021,3 +1021,59 @@ select{
     print-color-adjust:exact!important;
   }
 }
+/* =========================
+   SPLASH SCREEN PERSONALIZADA
+========================= */
+
+#splashScreen{
+  position:fixed;
+  inset:0;
+  background:white;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  z-index:99999;
+  transition:opacity .5s ease;
+}
+
+#splashScreen.hidden{
+  opacity:0;
+  pointer-events:none;
+}
+
+.splash-image{
+  width:min(78vw,420px);
+  max-width:420px;
+  height:auto;
+  object-fit:contain;
+  margin-bottom:32px;
+}
+
+.splash-loading{
+  font-size:20px;
+  color:#64748b;
+  margin-bottom:16px;
+  font-weight:500;
+}
+
+.splash-bar{
+  width:min(70vw,420px);
+  height:8px;
+  background:#e2e8f0;
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.splash-progress{
+  width:40%;
+  height:100%;
+  background:#1e3a8a;
+  border-radius:999px;
+  animation:splashLoad 1.4s ease-in-out infinite;
+}
+
+@keyframes splashLoad{
+  0%{transform:translateX(-100%);}
+  100%{transform:translateX(250%);}
+}
