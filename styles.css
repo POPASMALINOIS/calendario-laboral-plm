@@ -147,9 +147,22 @@ label{
 
 .calendar-controls{
   display:grid;
-  grid-template-columns:1fr;
-  gap:14px;
-  margin-bottom:16px;
+  grid-template-columns:88px 1fr;
+  gap:10px;
+  margin-bottom:12px;
+  align-items:end;
+}
+
+.calendar-controls label{
+  font-size:11px;
+  margin-bottom:4px;
+}
+
+.calendar-controls select{
+  padding:9px 10px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:700;
 }
 
 .view-switch{
