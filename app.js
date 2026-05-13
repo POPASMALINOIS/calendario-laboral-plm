@@ -1213,3 +1213,91 @@ function deleteHistoryItem(id){
   renderHistoryList();
   renderSummary();
 }
+function exportAnnualCalendarPDF(){
+  const year = Number(document.getElementById("calendarYearSelect")?.value || currentDate.getFullYear());
+  const existing = document.getElementById("printAnnualCalendar");
+  if(existing) existing.remove();
+
+  const printBox = document.createElement("div");
+  printBox.id = "printAnnualCalendar";
+
+  let html = `
+    <div class="print-title">Calendario Laboral PLM · ${year}</div>
+    <div class="print-year-grid">
+  `;
+
+  for(let month = 0; month < 12; month++){
+    html += `
+      <div class="print-month">
+        <h4>${monthNames[month]}</h4>
+        <div class="print-weekdays">
+          ${weekDays.map(w => `<div class="print-weekday">${w}</div>`).join("")}
+        </div>
+        <div class="print-days">
+    `;
+
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
+    let start = first.getDay();
+    start = start === 0 ? 6 : start - 1;
+
+    for(let i = 0; i < start; i++){
+      html += `<div class="print-day empty"></div>`;
+    }
+
+    for(let day = 1; day <= last.getDate(); day++){
+      const date = new Date(year, month, day);
+      const key = formatDate(date);
+      const assigned = state.calendar[key] || [];
+      const holiday = holidays(year)[key];
+
+      let style = "";
+      let cls = "print-day";
+
+      if(assigned.length){
+        cls += " has";
+        const colors = assigned.map(id => getColor(id));
+
+        if(colors.length === 1){
+          style = `background:${colors[0]};`;
+        }else{
+          const step = 100 / colors.length;
+          style = `background:linear-gradient(135deg, ${colors.map((c,i)=>`${c} ${i*step}% ${(i+1)*step}%`).join(", ")});`;
+        }
+      }
+
+      if(holiday && !assigned.length){
+        cls += " holiday";
+      }
+
+      html += `
+        <div class="${cls}" style="${style}">
+          <strong>${day}</strong>
+          ${holiday ? `<div class="print-tag">${holiday}</div>` : ""}
+          ${assigned.map(id => `<span class="print-tag">${getCategoryTag(id, key)}</span>`).join("")}
+        </div>
+      `;
+    }
+
+    html += `
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+
+  printBox.innerHTML = html;
+  document.body.appendChild(printBox);
+
+  document.body.classList.add("print-annual");
+
+  setTimeout(() => {
+    window.print();
+
+    setTimeout(() => {
+      document.body.classList.remove("print-annual");
+      printBox.remove();
+    }, 500);
+  }, 250);
+}
