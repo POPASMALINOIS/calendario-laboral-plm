@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calendario Laboral PLM</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #1f3a5f;
+      --primary-soft: #e8eef8;
+      --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 78px;
+    }
+
+    header {
+      padding: 18px 16px 10px;
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    header p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    main {
+      padding: 10px 14px 20px;
+    }
+
+    .tab {
+      display: none;
+    }
+
+    .tab.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .summary-card {
+      min-height: 96px;
+    }
+
+    .summary-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .summary-value {
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 8px;
+    }
+
+    .summary-small {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    button, select, input, textarea {
+      font-family: inherit;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    button.danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    select, input, textarea {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 74px;
+      resize: vertical;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 5px;
+      font-weight: 700;
+    }
+
+    .form-row {
+      margin-bottom: 10px;
+    }
+
+    .calendar-title {
+      font-size: 18px;
+      font-weight: 800;
+      text-align: center;
+      flex: 1;
+    }
+
+    .weekdays, .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .weekday {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 800;
+      padding: 4px 0;
+    }
+
+    .day {
+      min-height: 66px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 5px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .day.empty {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .day-number {
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .holiday {
+      color: #dc2626;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 2px 5px;
+      margin: 2px 2px 0 0;
+      color: white;
+      max-width: 100%;
+    }
+
+    .holiday-label {
+      font-size: 8px;
+      color: #dc2626;
+      margin-top: 2px;
+      font-weight: 700;
+    }
+
+    .category-picker {
+      display: flex;
+      overflow-x: auto;
+      gap: 8px;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .category-pill {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 11px;
+      color: white;
+      font-weight: 800;
+      border: 3px solid transparent;
+    }
+
+    .category-pill.selected {
+      border-color: #111827;
+    }
+
+    .list-item {
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .list-item:last-child {
+      border-bottom: none;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      z-index: 50;
+    }
+
+    .nav-btn {
+      background: transparent;
+      color: var(--muted);
+      border-radius: 0;
+      padding: 7px 2px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .nav-btn span {
+      display: block;
+      font-size: 19px;
+      margin-bottom: 2px;
+    }
+
+    .nav-btn.active {
+      color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .counter-row {
+      display: grid;
+      grid-template-columns: 1fr 90px;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .color-row {
+      display: grid;
+      grid-template-columns: 1fr 70px;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    input[type="color"] {
+      height: 42px;
+      padding: 4px;
+    }
+
+    @media (max-width: 390px) {
+      .day {
+        min-height: 58px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-btn {
+        font-size: 9px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Calendario Laboral PLM</h1>
+    <p id="subtitle">Control de días, horas y permisos</p>
+  </header>
+
+  <main>
+    <section id="resumen" class="tab active">
+      <div class="grid" id="summaryGrid"></div>
+    </section>
+
+    <section id="calendario" class="tab">
+      <div class="card">
+        <label>Categoría activa</label>
+        <div class="category-picker" id="categoryPicker"></div>
+        <button class="secondary" onclick="clearSelectedCategory()">Modo borrar categoría</button>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <button class="secondary" onclick="changeMonth(-1)">‹</button>
+          <div class="calendar-title" id="calendarTitle"></div>
+          <button class="secondary" onclick="changeMonth(1)">›</button>
+        </div>
+
+        <div class="weekdays">
+          <div class="weekday">L</div>
+          <div class="weekday">M</div>
+          <div class="weekday">X</div>
+          <div class="weekday">J</div>
+          <div class="weekday">V</div>
+          <div class="weekday">S</div>
+          <div class="weekday">D</div>
+        </div>
+
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+    </section>
+
+    <section id="contadores" class="tab">
+      <div class="card">
+        <label>Año</label>
+        <select id="counterYear" onchange="renderCounters()"></select>
+      </div>
+
+      <div class="card" id="counterInputs"></div>
+
+      <button onclick="saveCounters()">Guardar contadores</button>
+    </section>
+
+    <section id="historico" class="tab">
+      <div class="card">
+        <div class="form-row">
+          <label>Fecha</label>
+          <input type="date" id="historyDate" />
+        </div>
+
+        <div class="form-row">
+          <label>Categoría</label>
+          <select id="historyCategory"></select>
+        </div>
+
+        <div class="form-row">
+          <label>Observaciones</label>
+          <textarea id="historyNote"></textarea>
+        </div>
+
+        <button onclick="saveHistory()">Guardar histórico</button>
+      </div>
+
+      <div class="card">
+        <h3>Histórico</h3>
+        <div id="historyList"></div>
+      </div>
+    </section>
+
+    <section id="horas" class="tab">
+      <div class="card">
+        <div class="form-row">
+          <label>Fecha</label>
+          <input type="date" id="extraDate" />
+        </div>
+
+        <div class="form-row">
+          <label>Horas trabajadas</label>
+          <input type="number" step="0.25" id="extraHours" />
+        </div>
+
+        <div class="form-row">
+          <label>Observaciones</label>
+          <textarea id="extraNote"></textarea>
+        </div>
+
+        <button onclick="saveExtra()">Guardar horas</button>
+      </div>
+
+      <div class="card">
+        <h3>Horas extra</h3>
+        <div id="extraList"></div>
+      </div>
+    </section>
+
+    <section id="ajustes" class="tab">
+      <div class="card">
+        <h3>Colores de categorías</h3>
+        <div id="colorSettings"></div>
+        <button onclick="saveColors()">Guardar colores</button>
+      </div>
+
+      <div class="card">
+        <h3>Datos</h3>
+        <button class="danger" onclick="resetApp()">Borrar todos los datos</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showTab('resumen', this)"><span>🏠</span>Inicio</button>
+    <button class="nav-btn" onclick="showTab('calendario', this)"><span>📅</span>Calend.</button>
+    <button class="nav-btn" onclick="showTab('contadores', this)"><span>📊</span>Cont.</button>
+    <button class="nav-btn" onclick="showTab('historico', this)"><span>🗂️</span>Hist.</button>
+    <button class="nav-btn" onclick="showTab('horas', this)"><span>⏱️</span>Horas</button>
+    <button class="nav-btn" onclick="showTab('ajustes', this)"><span>⚙️</span>Ajustes</button>
+  </nav>
+
+  <script>
+    const categories = [
+      { id: "turno_manana", name: "TURNO MAÑANA", tag: "TM", type: "days", countable: false, color: "#2563eb" },
+      { id: "dia_blanco", name: "DÍA BLANCO", tag: "DB", type: "days", countable: true, color: "#64748b" },
+      { id: "dia_blanco_movil", name: "DÍA BLANCO MÓVIL", tag: "DBM", type: "days", countable: true, color: "#059669" },
+      { id: "dia_blanco_trabajar", name: "DÍA BLANCO TRABAJAR", tag: "DBT", type: "days", countable: true, color: "#f97316" },
+      { id: "baja", name: "BAJA", tag: "BJ", type: "days", countable: true, color: "#dc2626" },
+      { id: "asuntos_propios", name: "ASUNTOS PROPIOS", tag: "AP", type: "days", countable: true, color: "#7c3aed" },
+      { id: "acompanamiento_1", name: "ACOMPAÑAMIENTO 1er GRADO", tag: "A1", type: "hours", countable: true, color: "#ca8a04" },
+      { id: "acompanamiento_hijos", name: "ACOMPAÑAMIENTO HIJOS", tag: "AH", type: "hours", countable: true, color: "#db2777" }
+    ];
+
+    const monthNames = [
+      "enero", "febrero", "marzo", "abril", "mayo", "junio",
+      "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+    ];
+
+    const nationalHolidays = {
+      "2026-01-01": "Año Nuevo",
+      "2026-01-06": "Reyes",
+      "2026-04-03": "Viernes Santo",
+      "2026-05-01": "Trabajo",
+      "2026-08-15": "Asunción",
+      "2026-10-12": "Fiesta Nacional",
+      "2026-11-01": "Todos los Santos",
+      "2026-12-06": "Constitución",
+      "2026-12-08": "Inmaculada",
+      "2026-12-25": "Navidad",
+
+      "2027-01-01": "Año Nuevo",
+      "2027-01-06": "Reyes",
+      "2027-03-26": "Viernes Santo",
+      "2027-05-01": "Trabajo",
+      "2027-08-15": "Asunción",
+      "2027-10-12": "Fiesta Nacional",
+      "2027-11-01": "Todos los Santos",
+      "2027-12-06": "Constitución",
+      "2027-12-08": "Inmaculada",
+      "2027-12-25": "Navidad",
+
+      "2028-01-01": "Año Nuevo",
+      "2028-01-06": "Reyes",
+      "2028-04-14": "Viernes Santo",
+      "2028-05-01": "Trabajo",
+      "2028-08-15": "Asunción",
+      "2028-10-12": "Fiesta Nacional",
+      "2028-11-01": "Todos los Santos",
+      "2028-12-06": "Constitución",
+      "2028-12-08": "Inmaculada",
+      "2028-12-25": "Navidad",
+
+      "2029-01-01": "Año Nuevo",
+      "2029-01-06": "Reyes",
+      "2029-03-30": "Viernes Santo",
+      "2029-05-01": "Trabajo",
+      "2029-08-15": "Asunción",
+      "2029-10-12": "Fiesta Nacional",
+      "2029-11-01": "Todos los Santos",
+      "2029-12-06": "Constitución",
+      "2029-12-08": "Inmaculada",
+      "2029-12-25": "Navidad",
+
+      "2030-01-01": "Año Nuevo",
+      "2030-01-06": "Reyes",
+      "2030-04-19": "Viernes Santo",
+      "2030-05-01": "Trabajo",
+      "2030-08-15": "Asunción",
+      "2030-10-12": "Fiesta Nacional",
+      "2030-11-01": "Todos los Santos",
+      "2030-12-06": "Constitución",
+      "2030-12-08": "Inmaculada",
+      "2030-12-25": "Navidad",
+
+      "2031-01-01": "Año Nuevo",
+      "2031-01-06": "Reyes",
+      "2031-04-11": "Viernes Santo",
+      "2031-05-01": "Trabajo",
+      "2031-08-15": "Asunción",
+      "2031-10-12": "Fiesta Nacional",
+      "2031-11-01": "Todos los Santos",
+      "2031-12-06": "Constitución",
+      "2031-12-08": "Inmaculada",
+      "2031-12-25": "Navidad",
+
+      "2032-01-01": "Año Nuevo",
+      "2032-01-06": "Reyes",
+      "2032-03-26": "Viernes Santo",
+      "2032-05-01": "Trabajo",
+      "2032-08-15": "Asunción",
+      "2032-10-12": "Fiesta Nacional",
+      "2032-11-01": "Todos los Santos",
+      "2032-12-06": "Constitución",
+      "2032-12-08": "Inmaculada",
+      "2032-12-25": "Navidad"
+    };
+
+    const madridHolidays = {
+      "2026-03-19": "San José",
+      "2026-04-02": "Jueves Santo",
+      "2026-05-02": "Comunidad de Madrid",
+
+      "2027-03-25": "Jueves Santo",
+      "2027-05-02": "Comunidad de Madrid",
+
+      "2028-04-13": "Jueves Santo",
+      "2028-05-02": "Comunidad de Madrid",
+
+      "2029-03-29": "Jueves Santo",
+      "2029-05-02": "Comunidad de Madrid",
+
+      "2030-04-18": "Jueves Santo",
+      "2030-05-02": "Comunidad de Madrid",
+
+      "2031-04-10": "Jueves Santo",
+      "2031-05-02": "Comunidad de Madrid",
+
+      "2032-03-25": "Jueves Santo",
+      "2032-05-02": "Comunidad de Madrid"
+    };
+
+    let state = JSON.parse(localStorage.getItem("laboralApp")) || {
+      calendar: {},
+      counters: {},
+      history: [],
+      extras: [],
+      colors: {}
+    };
+
+    let selectedCategory = categories[0].id;
+    let currentDate = new Date(2026, 0, 1);
+
+    function saveState() {
+      localStorage.setItem("laboralApp", JSON.stringify(state));
+    }
+
+    function getColor(catId) {
+      return state.colors[catId] || categories.find(c => c.id === catId).color;
+    }
+
+    function formatDate(date) {
+      return date.toISOString().split("T")[0];
+    }
+
+    function showTab(id, btn) {
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      renderAll();
+    }
+
+    function renderCategoryPicker() {
+      const box = document.getElementById("categoryPicker");
+      box.innerHTML = "";
+
+      categories.forEach(cat => {
+        const pill = document.createElement("button");
+        pill.className = "category-pill" + (selectedCategory === cat.id ? " selected" : "");
+        pill.style.background = getColor(cat.id);
+        pill.textContent = cat.name;
+        pill.onclick = () => {
+          selectedCategory = cat.id;
+          renderCategoryPicker();
+        };
+        box.appendChild(pill);
+      });
+    }
+
+    function clearSelectedCategory() {
+      selectedCategory = null;
+      renderCategoryPicker();
+    }
+
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      document.getElementById("calendarTitle").textContent =
+        `${monthNames[month]} ${year}`;
+
+      const grid = document.getElementById("calendarGrid");
+      grid.innerHTML = "";
+
+      const first = new Date(year, month, 1);
+      const last = new Date(year, month + 1, 0);
+      let startDay = first.getDay();
+      startDay = startDay === 0 ? 6 : startDay - 1;
+
+      for (let i = 0; i < startDay; i++) {
+        const empty = document.createElement("div");
+        empty.className = "day empty";
+        grid.appendChild(empty);
+      }
+
+      for (let d = 1; d <= last.getDate(); d++) {
+        const date = new Date(year, month, d);
+        const key = formatDate(date);
+        const cell = document.createElement("div");
+        cell.className = "day";
+
+        const holidayName = nationalHolidays[key] || madridHolidays[key];
+
+        const number = document.createElement("div");
+        number.className = "day-number" + (holidayName ? " holiday" : "");
+        number.textContent = d;
+        cell.appendChild(number);
+
+        if (holidayName) {
+          const h = document.createElement("div");
+          h.className = "holiday-label";
+          h.textContent = holidayName;
+          cell.appendChild(h);
+        }
+
+        const assigned = state.calendar[key] || [];
+        assigned.forEach(catId => {
+          const cat = categories.find(c => c.id === catId);
+          if (!cat) return;
+
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          tag.style.background = getColor(catId);
+          tag.textContent = cat.tag;
+          cell.appendChild(tag);
+        });
+
+        cell.onclick = () => toggleDateCategory(key);
+        grid.appendChild(cell);
+      }
+    }
+
+    function toggleDateCategory(key) {
+      if (!state.calendar[key]) state.calendar[key] = [];
+
+      if (!selectedCategory) {
+        state.calendar[key] = [];
+      } else if (state.calendar[key].includes(selectedCategory)) {
+        state.calendar[key] = state.calendar[key].filter(c => c !== selectedCategory);
+      } else {
+        state.calendar[key].push(selectedCategory);
+      }
+
+      if (state.calendar[key].length === 0) delete state.calendar[key];
+
+      saveState();
+      renderAll();
+    }
+
+    function changeMonth(direction) {
+      currentDate.setMonth(currentDate.getMonth() + direction);
+
+      if (currentDate.getFullYear() < 2026) currentDate = new Date(2026, 0, 1);
+      if (currentDate.getFullYear() > 2032) currentDate = new Date(2032, 11, 1);
+
+      renderCalendar();
+    }
+
+    function renderSummary() {
+      const grid = document.getElementById("summaryGrid");
+      grid.innerHTML = "";
+
+      const year = currentDate.getFullYear();
+
+      categories.forEach(cat => {
+        const used = calculateUsed(cat.id, year);
+        const total = state.counters?.[year]?.[cat.id] || 0;
+        const remaining = total - used;
+
+        const card = document.createElement("div");
+        card.className = "card summary-card";
+
+        card.innerHTML = `
+          <div class="summary-title">${cat.name}</div>
+          <div class="summary-value">${cat.countable ? remaining : used}${cat.type === "hours" ? " h" : " d"}</div>
+          <div class="summary-small">
+            ${cat.countable ? `Usado: ${used}${cat.type === "hours" ? " h" : " d"} / Total: ${total}` : "Categoría informativa"}
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    function calculateUsed(catId, year) {
+      const cat = categories.find(c => c.id === catId);
+
+      if (cat.type === "hours") {
+        return state.history
+          .filter(h => h.category === catId && h.date.startsWith(String(year)))
+          .reduce((sum, h) => sum + Number(h.hours || 0), 0);
+      }
+
+      return Object.entries(state.calendar)
+        .filter(([date, cats]) => date.startsWith(String(year)) && cats.includes(catId))
+        .length;
+    }
+
+    function renderCounterYears() {
+      const select = document.getElementById("counterYear");
+      if (select.children.length) return;
+
+      for (let y = 2026; y <= 2032; y++) {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = y;
+        select.appendChild(opt);
+      }
+    }
+
+    function renderCounters() {
+      renderCounterYears();
+
+      const year = document.getElementById("counterYear").value || "2026";
+      const box = document.getElementById("counterInputs");
+      box.innerHTML = "";
+
+      categories.filter(c => c.countable).forEach(cat => {
+        const value = state.counters?.[year]?.[cat.id] || 0;
+
+        const row = document.createElement("div");
+        row.className = "counter-row";
+        row.innerHTML = `
+          <div>
+            <strong>${cat.name}</strong>
+            <div class="small">${cat.type === "hours" ? "Horas anuales" : "Días anuales"}</div>
+          </div>
+          <input type="number" step="0.25" id="counter-${cat.id}" value="${value}">
+        `;
+
+        box.appendChild(row);
+      });
+    }
+
+    function saveCounters() {
+      const year = document.getElementById("counterYear").value;
+      if (!state.counters[year]) state.counters[year] = {};
+
+      categories.filter(c => c.countable).forEach(cat => {
+        state.counters[year][cat.id] = Number(document.getElementById(`counter-${cat.id}`).value || 0);
+      });
+
+      saveState();
+      renderAll();
+      alert("Contadores guardados");
+    }
+
+    function renderHistoryForm() {
+      const select = document.getElementById("historyCategory");
+      select.innerHTML = "";
+
+      categories
+        .filter(c => c.id !== "turno_manana")
+        .forEach(cat => {
+          const opt = document.createElement("option");
+          opt.value = cat.id;
+          opt.textContent = cat.name;
+          select.appendChild(opt);
+        });
+    }
+
+    function saveHistory() {
+      const date = document.getElementById("historyDate").value;
+      const category = document.getElementById("historyCategory").value;
+      const note = document.getElementById("historyNote").value;
+
+      if (!date || !category) {
+        alert("Indica fecha y categoría");
+        return;
+      }
+
+      const cat = categories.find(c => c.id === category);
+
+      let hours = 0;
+      if (cat.type === "hours") {
+        hours = Number(prompt("Indica horas consumidas:", "1") || 0);
+      }
+
+      state.history.unshift({
+        id: Date.now(),
+        date,
+        category,
+        note,
+        hours
+      });
+
+      saveState();
+
+      document.getElementById("historyDate").value = "";
+      document.getElementById("historyNote").value = "";
+
+      renderAll();
+    }
+
+    function renderHistoryList() {
+      const box = document.getElementById("historyList");
+
+      if (!state.history.length) {
+        box.innerHTML = `<p class="small">No hay registros todavía.</p>`;
+        return;
+      }
+
+      box.innerHTML = state.history.map(item => {
+        const cat = categories.find(c => c.id === item.category);
+        return `
+          <div class="list-item">
+            <strong>${item.date}</strong> — ${cat?.name || ""}
+            ${item.hours ? `<div class="small">${item.hours} h</div>` : ""}
+            <div class="small">${item.note || ""}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function saveExtra() {
+      const date = document.getElementById("extraDate").value;
+      const hours = Number(document.getElementById("extraHours").value || 0);
+      const note = document.getElementById("extraNote").value;
+
+      if (!date || !hours) {
+        alert("Indica fecha y horas");
+        return;
+      }
+
+      state.extras.unshift({
+        id: Date.now(),
+        date,
+        hours,
+        note
+      });
+
+      saveState();
+
+      document.getElementById("extraDate").value = "";
+      document.getElementById("extraHours").value = "";
+      document.getElementById("extraNote").value = "";
+
+      renderAll();
+    }
+
+    function renderExtraList() {
+      const box = document.getElementById("extraList");
+
+      if (!state.extras.length) {
+        box.innerHTML = `<p class="small">No hay horas extra registradas.</p>`;
+        return;
+      }
+
+      const total = state.extras.reduce((sum, e) => sum + Number(e.hours), 0);
+
+      box.innerHTML = `
+        <p><strong>Total acumulado:</strong> ${total} h</p>
+        ${state.extras.map(e => `
+          <div class="list-item">
+            <strong>${e.date}</strong> — ${e.hours} h
+            <div class="small">${e.note || ""}</div>
+          </div>
+        `).join("")}
+      `;
+    }
+
+    function renderColors() {
+      const box = document.getElementById("colorSettings");
+      box.innerHTML = "";
+
+      categories.forEach(cat => {
+        const row = document.createElement("div");
+        row.className = "color-row";
+        row.innerHTML = `
+          <strong>${cat.name}</strong>
+          <input type="color" id="color-${cat.id}" value="${getColor(cat.id)}">
+        `;
+        box.appendChild(row);
+      });
+    }
+
+    function saveColors() {
+      categories.forEach(cat => {
+        state.colors[cat.id] = document.getElementById(`color-${cat.id}`).value;
+      });
+
+      saveState();
+      renderAll();
+      alert("Colores guardados");
+    }
+
+    function resetApp() {
+      if (!confirm("¿Seguro que quieres borrar todos los datos?")) return;
+      localStorage.removeItem("laboralApp");
+      location.reload();
+    }
+
+    function enableSwipe() {
+      let startX = 0;
+
+      document.getElementById("calendario").addEventListener("touchstart", e => {
+        startX = e.touches[0].clientX;
+      });
+
+      document.getElementById("calendario").addEventListener("touchend", e => {
+        const endX = e.changedTouches[0].clientX;
+        const diff = endX - startX;
+
+        if (Math.abs(diff) > 60) {
+          changeMonth(diff > 0 ? -1 : 1);
+        }
+      });
+    }
+
+    function renderAll() {
+      renderCategoryPicker();
+      renderCalendar();
+      renderSummary();
+      renderCounters();
+      renderHistoryForm();
+      renderHistoryList();
+      renderExtraList();
+      renderColors();
+    }
+
+    renderCounterYears();
+    renderAll();
+    enableSwipe();
+  </script>
+</body>
+</html>
