@@ -1298,10 +1298,10 @@ function exportAnnualCalendarPDF(){
         const colors = assigned.map(id => getColor(id));
 
         if(colors.length === 1){
-          style = `background:${colors[0]};`;
+          style = `background:${colors[0]}; color:white;`;
         }else{
           const step = 100 / colors.length;
-          style = `background:linear-gradient(135deg, ${colors.map((c,i)=>`${c} ${i*step}% ${(i+1)*step}%`).join(", ")});`;
+          style = `background:linear-gradient(135deg, ${colors.map((c,i)=>`${c} ${i*step}% ${(i+1)*step}%`).join(", ")}); color:white;`;
         }
       }
 
@@ -1324,7 +1324,26 @@ function exportAnnualCalendarPDF(){
     `;
   }
 
-  html += `</div>`;
+  html += `
+    </div>
+
+    <div class="print-legend">
+      <h3>Leyenda</h3>
+      <div class="print-legend-grid">
+        ${categories.map(cat => `
+          <div class="print-legend-item">
+            <span class="print-legend-color" style="background:${getColor(cat.id)}"></span>
+            <span><strong>${cat.tag}</strong> · ${cat.name}</span>
+          </div>
+        `).join("")}
+
+        <div class="print-legend-item">
+          <span class="print-legend-color" style="background:${getColor("evento")}"></span>
+          <span><strong>EV</strong> · Evento personal</span>
+        </div>
+      </div>
+    </div>
+  `;
 
   printBox.innerHTML = html;
   document.body.appendChild(printBox);
