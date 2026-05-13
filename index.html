@@ -107,6 +107,10 @@
   </div>
 
   <div class="card">
+    <button class="secondary full" onclick="exportHistoryCSV()">Exportar histórico CSV</button>
+  </div>
+
+  <div class="card">
     <div id="historyList"></div>
   </div>
 </section>
@@ -135,6 +139,10 @@
   </div>
 
   <div class="card">
+    <button class="secondary full" onclick="exportExtrasCSV()">Exportar horas CSV</button>
+  </div>
+
+  <div class="card">
     <div id="extraList"></div>
   </div>
 </section>
@@ -147,6 +155,23 @@
     <h3>Colores de categorías</h3>
     <div id="colorSettings"></div>
     <button class="full" onclick="saveColors()">Guardar colores</button>
+  </div>
+
+  <div class="card">
+    <h3>Recordatorios locales</h3>
+    <button class="secondary full" onclick="requestNotificationPermission()">Activar notificaciones</button>
+  </div>
+
+  <div class="card">
+    <h3>Copia de seguridad</h3>
+    <button class="secondary full" onclick="exportBackup()">Exportar copia JSON</button>
+    <br><br>
+    <input type="file" id="importBackupFile" accept=".json" onchange="importBackup(event)">
+  </div>
+
+  <div class="card">
+    <h3>Exportación PDF</h3>
+    <button class="secondary full" onclick="exportPDF()">Exportar PDF / Imprimir</button>
   </div>
 
   <div class="card">
@@ -213,7 +238,7 @@
   </div>
 </div>
 
-<script src="app.js?v=11"></script>
+<script src="app.js?v=20"></script>
 
 <script>
 if("serviceWorker" in navigator){
