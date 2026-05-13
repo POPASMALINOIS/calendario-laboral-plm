@@ -782,4 +782,196 @@ scheduleReminder(
   10000
 );
 */
+/* =========================
+   MODO OSCURO
+========================= */
+
+function applyDarkMode() {
+  if (localStorage.getItem("plmDarkMode") === "true") {
+    document.body.classList.add("dark");
+  } else {
+    document.body.classList.remove("dark");
+  }
+}
+
+function toggleDarkMode() {
+  const enabled = document.body.classList.toggle("dark");
+  localStorage.setItem("plmDarkMode", enabled ? "true" : "false");
+}
+
+/* =========================
+   SPLASH SCREEN
+========================= */
+
+window.addEventListener("load", () => {
+  applyDarkMode();
+
+  const splash = document.getElementById("splashScreen");
+
+  setTimeout(() => {
+    if (splash) splash.classList.add("hidden");
+  }, 1800);
+
+  checkReminders();
+});
+
+/* =========================
+   RECORDATORIOS PROGRAMABLES
+========================= */
+
+if (!state.reminders) {
+  state.reminders = [];
+}
+
+function saveReminder() {
+  const title = document.getElementById("reminderTitle").value.trim();
+  const body = document.getElementById("reminderBody").value.trim();
+  const date = document.getElementById("reminderDate").value;
+
+  if (!title || !body || !date) {
+    alert("Completa todos los campos del recordatorio.");
+    return;
+  }
+
+  state.reminders.push({
+    id: Date.now(),
+    title,
+    body,
+    date,
+    triggered: false
+  });
+
+  saveState();
+
+  document.getElementById("reminderTitle").value = "";
+  document.getElementById("reminderBody").value = "";
+  document.getElementById("reminderDate").value = "";
+
+  renderReminders();
+
+  alert("Recordatorio guardado.");
+}
+
+function renderReminders() {
+  const box = document.getElementById("reminderList");
+  if (!box) return;
+
+  box.innerHTML = "";
+
+  if (!state.reminders.length) {
+    box.innerHTML = `<div class="small">No hay recordatorios programados.</div>`;
+    return;
+  }
+
+  state.reminders
+    .sort((a,b)=>new Date(a.date)-new Date(b.date))
+    .forEach(rem => {
+      let item = document.createElement("div");
+      item.className = "list-item";
+
+      item.innerHTML = `
+        <strong>${rem.title}</strong><br>
+        <span class="small">${rem.body}</span><br>
+        <span class="small">${new Date(rem.date).toLocaleString()}</span><br><br>
+        <button class="danger" onclick="deleteReminder(${rem.id})">Eliminar</button>
+      `;
+
+      box.appendChild(item);
+    });
+}
+
+function deleteReminder(id) {
+  state.reminders = state.reminders.filter(r => r.id !== id);
+  saveState();
+  renderReminders();
+}
+
+function checkReminders() {
+  if (!state.reminders || !state.reminders.length) return;
+
+  const now = new Date();
+
+  state.reminders.forEach(rem => {
+    if (!rem.triggered && new Date(rem.date) <= now) {
+
+      if (Notification.permission === "granted") {
+        new Notification(rem.title, {
+          body: rem.body
+        });
+      } else {
+        alert(`${rem.title}\n\n${rem.body}`);
+      }
+
+      rem.triggered = true;
+    }
+  });
+
+  saveState();
+  renderReminders();
+}
+
+/* =========================
+   WIDGET PREMIUM
+========================= */
+
+function renderQuickWidget() {
+  const box = document.getElementById("quickWidget");
+  if (!box) return;
+
+  let totalCategories = categories.filter(c => c.countable).length;
+
+  let totalRemaining = categories
+    .filter(c => c.countable)
+    .reduce((sum, cat) => {
+      let used = calculateUsed(cat.id, summaryYear);
+      let total = Number(state.counters?.[summaryYear]?.[cat.id] || 0);
+      return sum + Math.max(total - used, 0);
+    }, 0);
+
+  let extras = (state.extras || []).reduce((sum, e) => sum + Number(e.hours || 0), 0);
+
+  let pendingReminder = state.reminders
+    ?.filter(r => !r.triggered)
+    ?.sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
+
+  box.innerHTML = `
+    <div class="widget-grid">
+      <div class="widget-item">
+        <div class="widget-value">${totalRemaining}</div>
+        <div class="widget-label">Disponibles</div>
+      </div>
+
+      <div class="widget-item">
+        <div class="widget-value">${extras}</div>
+        <div class="widget-label">Horas extra</div>
+      </div>
+
+      <div class="widget-item">
+        <div class="widget-value">${totalCategories}</div>
+        <div class="widget-label">Categorías</div>
+      </div>
+    </div>
+
+    ${
+      pendingReminder
+      ? `<div class="reminder-chip">
+          Próximo: ${pendingReminder.title} · ${new Date(pendingReminder.date).toLocaleDateString()}
+        </div>`
+      : ""
+    }
+  `;
+}
+
+/* =========================
+   MEJORA GLOBAL
+========================= */
+
+const originalRenderAll = renderAll;
+
+renderAll = function() {
+  originalRenderAll();
+  renderReminders();
+  renderQuickWidget();
+  applyDarkMode();
+};
 
