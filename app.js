@@ -545,14 +545,28 @@ function renderCounters(){
   });
 }
 
-function saveCounters(){
+function changeCounterValue(catId, delta){
   let year = document.getElementById("counterYear").value;
-  if (!state.counters[year]) state.counters[year] = {};
 
-  categories.filter(c => c.countable).forEach(cat => {
-    state.counters[year][cat.id] = Number(document.getElementById(`counter-${cat.id}`).value || 0);
-  });
+  if (!state.counters[year]) {
+    state.counters[year] = {};
+  }
 
+  let current = Number(state.counters[year][catId] || 0);
+  let next = Math.max(0, current + delta);
+
+  state.counters[year][catId] = next;
+
+  let valueBox = document.getElementById(`counter-${catId}`);
+  if (valueBox) {
+    valueBox.textContent = next;
+  }
+
+  saveState();
+  renderSummary();
+}
+
+function saveCounters(){
   saveState();
   renderSummary();
   alert("Contadores guardados");
