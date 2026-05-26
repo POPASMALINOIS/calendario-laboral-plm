@@ -366,9 +366,10 @@ function createDayCell(date, mini = false) {
   }
 
   if (!mini) {
-    assignments.slice(0, 3).forEach(item => {
+    assignments.slice(0, 3).forEach((item, index) => {
       const chip = document.createElement("div");
       chip.className = "profile-shift";
+      chip.style.top = `${30 + (index * 22)}px`;
 
       const chipColor = item.type === "event"
         ? "#111827"
