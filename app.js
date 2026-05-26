@@ -378,10 +378,8 @@ function createDayCell(date, mini = false) {
         ? (item.event.allDay ? "EV" : item.event.time)
         : getCategoryTag(item.category);
       
-      chip.innerHTML = `
-        <span class="profile-dot" style="background:${chipColor}"></span>
-        <span class="profile-tag">${label}</span>
-      `;
+      chip.style.borderLeft = `5px solid ${chipColor}`;
+      chip.textContent = label;
 
       cell.appendChild(chip);
     });
