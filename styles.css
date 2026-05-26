@@ -1242,3 +1242,32 @@ body.dark .profile-shift{
 .profile-name{
   display:none!important;
 }
+.profile-shift{
+  display:block!important;
+  width:calc(100% - 14px)!important;
+  max-width:calc(100% - 14px)!important;
+  margin-left:14px!important;
+  margin-top:6px!important;
+  padding:5px 6px!important;
+  border-radius:8px!important;
+  background:rgba(255,255,255,.86)!important;
+  color:#111827!important;
+  font-size:10px!important;
+  font-weight:950!important;
+  line-height:1!important;
+  text-align:center!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+}
+
+body.dark .profile-shift{
+  background:rgba(15,23,42,.88)!important;
+  color:#ffffff!important;
+}
+
+.profile-dot,
+.profile-name,
+.profile-tag{
+  display:none!important;
+}
