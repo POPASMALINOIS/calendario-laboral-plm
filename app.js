@@ -516,6 +516,7 @@ function toggleDate(key) {
   }
 
   profile.calendar ||= {};
+  profile.notes ||= {};
 
   if (!profile.calendar[key]) {
     profile.calendar[key] = [];
@@ -523,8 +524,37 @@ function toggleDate(key) {
 
   if (profile.calendar[key].includes(selectedCategory)) {
     profile.calendar[key] = profile.calendar[key].filter(x => x !== selectedCategory);
+
+    if (profile.notes[key]?.[selectedCategory]) {
+      delete profile.notes[key][selectedCategory];
+    }
+
+    if (profile.notes[key] && !Object.keys(profile.notes[key]).length) {
+      delete profile.notes[key];
+    }
+
   } else {
     profile.calendar[key].push(selectedCategory);
+
+    const cat = categories.find(c => c.id === selectedCategory);
+
+    if (cat && (cat.type === "hours" || cat.type === "mixed")) {
+      let msg = "¿Cuántas horas has gastado este día?";
+
+      if (selectedCategory === "asuntos_propios") {
+        msg = "¿Cuántas horas de asuntos propios has gastado? Usa 4 para medio día u 8 para día completo.";
+      }
+
+      const hours = prompt(msg, selectedCategory === "asuntos_propios" ? "4" : "");
+
+      if (hours !== null && hours !== "") {
+        profile.notes[key] ||= {};
+        profile.notes[key][selectedCategory] = {
+          hours: Number(String(hours).replace(",", ".")) || 0,
+          note: ""
+        };
+      }
+    }
   }
 
   if (!profile.calendar[key].length) {
@@ -1007,10 +1037,19 @@ function renderColors() {
 
     row.innerHTML = `
       <div>
-        <span class="color-preview" style="background:${color}"></span>
+        <span class="color-preview" id="preview-${cat.id}" style="background:${color}"></span>
         <strong>${cat.name}</strong>
       </div>
-      <input type="color" id="color-${cat.id}" value="${color}" onchange="previewColor('${cat.id}', this.value)">
+
+      <label class="color-edit-btn">
+        Editar color
+        <input 
+          type="color" 
+          id="color-${cat.id}" 
+          value="${color}"
+          onchange="previewColor('${cat.id}', this.value)"
+        >
+      </label>
     `;
 
     box.appendChild(row);
@@ -1019,6 +1058,10 @@ function renderColors() {
 
 function previewColor(catId, value) {
   state.colors[catId] = value;
+
+  const preview = document.getElementById(`preview-${catId}`);
+  if (preview) preview.style.background = value;
+
   saveState();
   renderCalendar();
   renderSummary();
@@ -1219,7 +1262,219 @@ function exportPDF() {
 }
 
 function exportAnnualCalendarPDF() {
-  window.print();
+  const year = Number(document.getElementById("calendarYearSelect")?.value || currentDate.getFullYear());
+
+  let html = `
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <title>Calendario Laboral ${year}</title>
+    <style>
+      body{
+        font-family:Arial,sans-serif;
+        margin:14px;
+        color:#111827;
+      }
+
+      h1{
+        text-align:center;
+        font-size:22px;
+        margin:0 0 14px;
+      }
+
+      .year-grid{
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:10px;
+      }
+
+      .month{
+        border:1px solid #d1d5db;
+        border-radius:10px;
+        padding:7px;
+        page-break-inside:avoid;
+      }
+
+      .month h2{
+        text-align:center;
+        font-size:13px;
+        margin:0 0 6px;
+        text-transform:capitalize;
+      }
+
+      .weekdays,
+      .days{
+        display:grid;
+        grid-template-columns:repeat(7,1fr);
+        gap:2px;
+      }
+
+      .weekday{
+        font-size:7px;
+        font-weight:bold;
+        text-align:center;
+        color:#6b7280;
+      }
+
+      .day{
+        min-height:30px;
+        border:1px solid #e5e7eb;
+        border-radius:5px;
+        padding:2px;
+        font-size:7px;
+        overflow:hidden;
+      }
+
+      .empty{
+        border:none;
+      }
+
+      .has{
+        color:white;
+        font-weight:bold;
+        -webkit-print-color-adjust:exact;
+        print-color-adjust:exact;
+      }
+
+      .tag{
+        display:block;
+        font-size:6px;
+        margin-top:1px;
+        background:rgba(0,0,0,.25);
+        color:white;
+        border-radius:4px;
+        padding:1px 2px;
+      }
+
+      .legend{
+        margin-top:12px;
+        border-top:1px solid #d1d5db;
+        padding-top:8px;
+      }
+
+      .legend h3{
+        text-align:center;
+        font-size:11px;
+        margin:0 0 6px;
+      }
+
+      .legend-grid{
+        display:grid;
+        grid-template-columns:repeat(4,1fr);
+        gap:4px 8px;
+        font-size:7px;
+      }
+
+      .legend-item{
+        display:flex;
+        align-items:center;
+        gap:4px;
+      }
+
+      .legend-color{
+        width:9px;
+        height:9px;
+        border-radius:2px;
+        border:1px solid #555;
+        -webkit-print-color-adjust:exact;
+        print-color-adjust:exact;
+      }
+
+      @media print{
+        @page{
+          size:A4 portrait;
+          margin:10mm;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Calendario Laboral ${year}</h1>
+    <div class="year-grid">
+  `;
+
+  for (let m = 0; m < 12; m++) {
+    html += `<div class="month"><h2>${monthNames[m]}</h2>`;
+
+    html += `<div class="weekdays">`;
+    weekDays.forEach(w => html += `<div class="weekday">${w}</div>`);
+    html += `</div><div class="days">`;
+
+    const first = new Date(year, m, 1);
+    const last = new Date(year, m + 1, 0);
+
+    let start = first.getDay();
+    start = start === 0 ? 6 : start - 1;
+
+    for (let i = 0; i < start; i++) {
+      html += `<div class="day empty"></div>`;
+    }
+
+    for (let d = 1; d <= last.getDate(); d++) {
+      const date = new Date(year, m, d);
+      const key = formatDate(date);
+      const assignments = getDayAssignments(key);
+      const background = buildDayBackground(assignments);
+
+      html += `
+        <div class="day ${assignments.length ? "has" : ""}" style="${background ? `background:${background};` : ""}">
+          <strong>${d}</strong>
+      `;
+
+      assignments.slice(0, 2).forEach(item => {
+        html += `<span class="tag">${item.profile.name} · ${getCategoryTag(item.category)}</span>`;
+      });
+
+      html += `</div>`;
+    }
+
+    html += `</div></div>`;
+  }
+
+  html += `
+    </div>
+
+    <div class="legend">
+      <h3>Leyenda de colores</h3>
+      <div class="legend-grid">
+  `;
+
+  categories.forEach(cat => {
+    html += `
+      <div class="legend-item">
+        <span class="legend-color" style="background:${getColor(cat.id)}"></span>
+        <span><strong>${cat.tag}</strong> ${cat.name}</span>
+      </div>
+    `;
+  });
+
+  getProfiles().forEach(profile => {
+    html += `
+      <div class="legend-item">
+        <span class="legend-color" style="background:${profile.color}"></span>
+        <span>${profile.name}</span>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+    </div>
+
+    <script>
+      window.onload = function(){
+        window.print();
+      };
+    </script>
+  </body>
+  </html>
+  `;
+
+  const win = window.open("", "_blank");
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
 }
 
 function requestNotificationPermission() {
