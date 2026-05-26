@@ -1005,3 +1005,30 @@ body.dark .bottom-nav{
     bottom:10px;
   }
 }
+@media(max-width:430px){
+
+  .profile-shift{
+    width:28px!important;
+    min-width:28px!important;
+    height:18px!important;
+    margin-left:18px!important;
+    padding:0!important;
+    font-size:8px!important;
+    border-radius:6px!important;
+    justify-content:center!important;
+    text-align:center!important;
+    overflow:visible!important;
+  }
+
+  .day.has-soft .profile-shift{
+    margin-left:18px!important;
+  }
+
+  .day-side-bars{
+    width:12px!important;
+  }
+
+  .day.has-soft .day-number{
+    margin-left:12px!important;
+  }
+}
