@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2563eb">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=60">
+<link rel="stylesheet" href="styles.css?v=70">
 </head>
 
 <body>
@@ -25,22 +25,37 @@
 
 <section id="resumen" class="tab active">
   <div class="page-title">Calendario Laboral PLM</div>
-  <div class="page-subtitle">Resumen general anual</div>
+  <div class="page-subtitle">Resumen anual por perfiles</div>
 
-  <div class="card">
-    <label>Año</label>
-    <select id="summaryYear" onchange="changeSummaryYear(this.value)"></select>
+  <div class="dashboard-top">
+    <div class="card compact-control">
+      <label>Año</label>
+      <select id="summaryYear" onchange="changeSummaryYear(this.value)"></select>
+    </div>
+
+    <div class="card compact-control">
+      <label>Vista</label>
+      <select id="summaryProfileSelect" onchange="setActiveProfile(this.value)"></select>
+    </div>
   </div>
 
-  <div class="grid" id="summaryGrid"></div>
+  <div id="profileSummaryPanel"></div>
+
+  <div class="section-heading">Permisos y contadores</div>
+  <div class="compact-grid" id="summaryGrid"></div>
 </section>
 
 <section id="calendario" class="tab">
   <div class="card">
-    <div class="calendar-controls">
+    <div class="calendar-controls calendar-controls-pro">
       <div>
         <label>Año</label>
         <select id="calendarYearSelect" onchange="jumpToYear(this.value)"></select>
+      </div>
+
+      <div>
+        <label>Perfil</label>
+        <select id="calendarProfileSelect" onchange="setActiveProfile(this.value)"></select>
       </div>
 
       <div>
@@ -68,9 +83,16 @@
 <section id="contadores" class="tab">
   <div class="page-title">Contadores</div>
 
-  <div class="card">
-    <label>Año</label>
-    <select id="counterYear" onchange="renderCounters()"></select>
+  <div class="dashboard-top">
+    <div class="card compact-control">
+      <label>Año</label>
+      <select id="counterYear" onchange="renderCounters()"></select>
+    </div>
+
+    <div class="card compact-control">
+      <label>Perfil</label>
+      <select id="counterProfileSelect" onchange="setActiveProfile(this.value); renderCounters();"></select>
+    </div>
   </div>
 
   <div class="card" id="counterInputs"></div>
@@ -81,6 +103,11 @@
   <div class="page-title">Histórico</div>
 
   <div class="card">
+    <div class="form-row">
+      <label>Perfil</label>
+      <select id="historyProfileSelect" onchange="setActiveProfile(this.value)"></select>
+    </div>
+
     <div class="form-row">
       <label>Fecha</label>
       <input type="date" id="historyDate">
@@ -118,6 +145,11 @@
 
   <div class="card">
     <div class="form-row">
+      <label>Perfil</label>
+      <select id="extraProfileSelect" onchange="setActiveProfile(this.value)"></select>
+    </div>
+
+    <div class="form-row">
       <label>Fecha</label>
       <input type="date" id="extraDate">
     </div>
@@ -145,7 +177,13 @@
 </section>
 
 <section id="ajustes" class="tab">
-  <div class="page-title">Personalización</div>
+  <div class="page-title">Ajustes</div>
+
+  <div class="card">
+    <h3>Perfiles y jornada</h3>
+    <div id="profileSettings"></div>
+    <button class="full" onclick="saveProfiles()">Guardar perfiles</button>
+  </div>
 
   <div class="card">
     <h3>Modo visual</h3>
@@ -191,11 +229,11 @@
   </div>
 
   <div class="card">
-  <h3>Exportación PDF</h3>
-  <button class="secondary full" onclick="exportPDF()">Exportar PDF / Imprimir</button>
-  <br><br>
-  <button class="secondary full" onclick="exportAnnualCalendarPDF()">Exportar calendario anual PDF</button>
-</div>
+    <h3>Exportación PDF</h3>
+    <button class="secondary full" onclick="exportPDF()">Exportar PDF / Imprimir</button>
+    <br><br>
+    <button class="secondary full" onclick="exportAnnualCalendarPDF()">Exportar calendario anual PDF</button>
+  </div>
 
   <div class="card">
     <h3>Seguridad</h3>
@@ -218,6 +256,11 @@
   <div class="modal">
 
     <h3 id="modalTitle">Editar día</h3>
+
+    <div class="form-row">
+      <label>Perfil</label>
+      <select id="modalProfile" onchange="setActiveProfile(this.value)"></select>
+    </div>
 
     <div class="form-row">
       <label>Categoría / Evento</label>
@@ -253,7 +296,7 @@
   </div>
 </div>
 
-<script src="app.js?v=60"></script>
+<script src="app.js?v=70"></script>
 
 <script>
 if("serviceWorker" in navigator){
