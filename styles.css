@@ -1205,3 +1205,40 @@ body.dark .profile-shift{
   line-height:1!important;
   text-align:left!important;
 }
+.profile-shift{
+  height:22px!important;
+  width:calc(100% - 18px)!important;
+  max-width:calc(100% - 18px)!important;
+  margin-left:14px!important;
+  margin-top:6px!important;
+  padding:3px 6px!important;
+  display:grid!important;
+  grid-template-columns:8px 1fr!important;
+  align-items:center!important;
+  column-gap:5px!important;
+  border-radius:999px!important;
+  overflow:hidden!important;
+}
+
+.profile-dot{
+  width:8px!important;
+  height:8px!important;
+}
+
+.profile-tag{
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  overflow:visible!important;
+  white-space:nowrap!important;
+  text-overflow:clip!important;
+  font-size:10px!important;
+  font-weight:950!important;
+  line-height:1!important;
+  color:inherit!important;
+  opacity:1!important;
+}
+
+.profile-name{
+  display:none!important;
+}
