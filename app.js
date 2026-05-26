@@ -219,6 +219,11 @@ function renderCategorySelect() {
 
   select.innerHTML = "";
 
+  const eventOpt = document.createElement("option");
+  eventOpt.value = "evento";
+  eventOpt.textContent = "EVENTO PERSONAL";
+  select.appendChild(eventOpt);
+
   categories.forEach(cat => {
     const opt = document.createElement("option");
     opt.value = cat.id;
@@ -284,16 +289,15 @@ function holidays(y) {
 }
 
 function buildDayBackground(assignments) {
-  const colors = assignments.map(a => getColor(a.category));
+  const colors = assignments.map(a => a.type === "event" ? "#111827" : getColor(a.category));
 
   if (!colors.length) return "";
 
-  if (colors.length === 1) {
-    return colors[0];
-  }
+  if (colors.length === 1) return colors[0];
 
   const step = 100 / colors.length;
-  return `linear-gradient(135deg, ${colors.map((c,i) => `${c} ${i * step}% ${(i + 1) * step}%`).join(", ")})`;
+
+  return `linear-gradient(90deg, ${colors.map((c,i) => `${c} ${i * step}% ${(i + 1) * step}%`).join(", ")})`;
 }
 
 function getDayAssignments(key) {
@@ -305,7 +309,17 @@ function getDayAssignments(key) {
     assigned.forEach(category => {
       result.push({
         profile,
-        category
+        category,
+        type: "category"
+      });
+    });
+
+    getPersonalEventsForDay(profile, key).forEach(event => {
+      result.push({
+        profile,
+        category: "evento",
+        type: "event",
+        event
       });
     });
   });
@@ -325,8 +339,12 @@ function createDayCell(date, mini = false) {
   if (key === today) cell.classList.add("today");
 
   if (assignments.length) {
-    cell.classList.add("has");
-    cell.style.background = buildDayBackground(assignments);
+    cell.classList.add("has-soft");
+
+    const strip = document.createElement("div");
+    strip.className = "day-color-strip";
+    strip.style.background = buildDayBackground(assignments);
+    cell.appendChild(strip);
   }
 
   const num = document.createElement("div");
@@ -342,16 +360,20 @@ function createDayCell(date, mini = false) {
   }
 
   if (!mini) {
-    const shown = assignments.slice(0, 4);
-
-    shown.forEach(item => {
+    assignments.slice(0, 4).forEach(item => {
       const chip = document.createElement("div");
-      chip.className = "profile-shift";
+      chip.className = item.type === "event" ? "profile-shift event-chip" : "profile-shift";
+
       chip.innerHTML = `
         <span class="profile-dot" style="background:${item.profile.color}"></span>
         <span class="profile-name">${item.profile.name}</span>
-        <span class="profile-tag">${getCategoryTag(item.category)}</span>
+        <span class="profile-tag">
+          ${item.type === "event"
+            ? `${item.event.allDay ? "EV" : item.event.time} · ${item.event.title}`
+            : getCategoryTag(item.category)}
+        </span>
       `;
+
       cell.appendChild(chip);
     });
 
@@ -515,12 +537,15 @@ function toggleDate(key) {
     return;
   }
 
+  if (selectedCategory === "evento") {
+    createPersonalEvent(key, profile);
+    return;
+  }
+
   profile.calendar ||= {};
   profile.notes ||= {};
 
-  if (!profile.calendar[key]) {
-    profile.calendar[key] = [];
-  }
+  if (!profile.calendar[key]) profile.calendar[key] = [];
 
   if (profile.calendar[key].includes(selectedCategory)) {
     profile.calendar[key] = profile.calendar[key].filter(x => x !== selectedCategory);
@@ -529,21 +554,15 @@ function toggleDate(key) {
       delete profile.notes[key][selectedCategory];
     }
 
-    if (profile.notes[key] && !Object.keys(profile.notes[key]).length) {
-      delete profile.notes[key];
-    }
-
   } else {
     profile.calendar[key].push(selectedCategory);
 
     const cat = categories.find(c => c.id === selectedCategory);
 
     if (cat && (cat.type === "hours" || cat.type === "mixed")) {
-      let msg = "¿Cuántas horas has gastado este día?";
-
-      if (selectedCategory === "asuntos_propios") {
-        msg = "¿Cuántas horas de asuntos propios has gastado? Usa 4 para medio día u 8 para día completo.";
-      }
+      const msg = selectedCategory === "asuntos_propios"
+        ? "¿Cuántas horas de asuntos propios has gastado? Usa 4 para medio día u 8 para día completo."
+        : "¿Cuántas horas has gastado este día?";
 
       const hours = prompt(msg, selectedCategory === "asuntos_propios" ? "4" : "");
 
@@ -557,9 +576,7 @@ function toggleDate(key) {
     }
   }
 
-  if (!profile.calendar[key].length) {
-    delete profile.calendar[key];
-  }
+  if (!profile.calendar[key].length) delete profile.calendar[key];
 
   saveState();
   renderCalendar();
@@ -1568,6 +1585,62 @@ function resetApp() {
     localStorage.removeItem("laboralAppPLM");
     location.reload();
   }
+}
+
+function createPersonalEvent(dateKey, profile) {
+  profile.events ||= [];
+
+  const title = prompt("Título del evento:", "");
+  if (!title) return;
+
+  const allDay = confirm("¿El evento ocupa todo el día?\n\nAceptar = todo el día\nCancelar = indicar hora");
+
+  let time = "";
+
+  if (!allDay) {
+    time = prompt("Hora del evento. Ejemplo: 17:30", "");
+    if (!time) return;
+  }
+
+  const reminder = prompt(
+    "Recordatorio en minutos antes del evento.\nEjemplos: 15, 30, 60, 1440.\nDéjalo vacío si no quieres recordatorio.",
+    "30"
+  );
+
+  const event = {
+    id: Date.now(),
+    date: dateKey,
+    title,
+    allDay,
+    time,
+    reminderMinutes: reminder ? Number(reminder) || 0 : 0
+  };
+
+  profile.events.push(event);
+
+  if (event.reminderMinutes > 0) {
+    const baseDate = new Date(`${dateKey}T${allDay ? "09:00" : time}`);
+    const reminderDate = new Date(baseDate.getTime() - event.reminderMinutes * 60000);
+
+    state.reminders ||= [];
+    state.reminders.push({
+      id: Date.now() + 1,
+      title: `Recordatorio: ${title}`,
+      body: allDay ? "Evento de todo el día" : `Evento a las ${time}`,
+      date: reminderDate.toISOString().slice(0,16),
+      triggered: false
+    });
+  }
+
+  saveState();
+  renderAll();
+
+  alert("Evento guardado.");
+}
+
+function getPersonalEventsForDay(profile, dateKey) {
+  profile.events ||= [];
+  return profile.events.filter(ev => ev.date === dateKey);
 }
 
 function renderAll() {
