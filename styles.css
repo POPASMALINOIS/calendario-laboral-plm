@@ -1176,3 +1176,32 @@ body.dark .profile-shift{
   height:8px;
   flex-shrink:0;
 }
+.profile-shift{
+  display:flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  width:calc(100% - 16px)!important;
+  max-width:calc(100% - 16px)!important;
+  margin-left:14px!important;
+  padding:4px 6px!important;
+  overflow:hidden!important;
+}
+
+.profile-name{
+  display:none!important;
+}
+
+.profile-tag{
+  display:block!important;
+  flex:1!important;
+  min-width:0!important;
+  max-width:none!important;
+  margin-left:0!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+  font-size:9px!important;
+  font-weight:950!important;
+  line-height:1!important;
+  text-align:left!important;
+}
