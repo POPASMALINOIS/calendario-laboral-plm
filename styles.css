@@ -1007,3 +1007,69 @@ body.dark .profile-shift{
   white-space:nowrap;
   text-overflow:ellipsis;
 }
+.day.has-soft{
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--day-main-color) 18%, var(--card)),
+      var(--card) 62%
+    );
+  color:var(--text);
+  border-color:color-mix(in srgb, var(--day-main-color) 45%, transparent);
+}
+
+.day-side-bars{
+  position:absolute;
+  top:0;
+  left:0;
+  bottom:0;
+  width:7px;
+  z-index:1;
+  border-radius:19px 0 0 19px;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+
+.day.has-soft .day-number{
+  color:var(--text);
+  margin-left:6px;
+}
+
+.day.has-soft .holiday-label{
+  color:var(--danger);
+  margin-left:6px;
+}
+
+.day.has-soft .profile-shift{
+  margin-left:6px;
+}
+
+.profile-shift{
+  background:rgba(255,255,255,.72);
+  color:var(--text);
+  border:1px solid rgba(15,23,42,.08);
+  box-shadow:0 2px 8px rgba(15,23,42,.08);
+}
+
+body.dark .profile-shift{
+  background:rgba(15,23,42,.72);
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.profile-dot{
+  width:8px;
+  height:8px;
+}
+
+.event-chip{
+  background:rgba(17,24,39,.92)!important;
+  color:white!important;
+}
+
+.event-chip .profile-tag{
+  max-width:72px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
