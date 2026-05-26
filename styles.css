@@ -587,23 +587,22 @@ body.dark .day{
 /* CHIPS DEFINITIVOS */
 
 .profile-shift{
-  width:42px;
+  position:absolute;
+  right:4px;
+  top:30px;
+  width:30px;
   height:18px;
-  margin-left:14px;
-  margin-top:5px;
   border-radius:6px;
   display:flex;
   align-items:center;
   justify-content:center;
   color:white;
-  font-size:9px;
+  font-size:8px;
   font-weight:900;
-  letter-spacing:.3px;
+  letter-spacing:.2px;
   box-shadow:0 2px 6px rgba(0,0,0,.12);
   overflow:hidden;
   white-space:nowrap;
-  flex-shrink:0;
-  position:relative;
   z-index:5;
 }
 
