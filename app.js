@@ -374,14 +374,13 @@ function createDayCell(date, mini = false) {
         ? "#111827"
         : getColor(item.category);
 
+      const label = item.type === "event"
+        ? (item.event.allDay ? "EV" : item.event.time)
+        : getCategoryTag(item.category);
+      
       chip.innerHTML = `
         <span class="profile-dot" style="background:${chipColor}"></span>
-        <span class="profile-name">${item.profile.name}</span>
-        <span class="profile-tag">
-          ${item.type === "event"
-            ? `${item.event.allDay ? "EV" : item.event.time} · ${item.event.title}`
-            : getCategoryTag(item.category)}
-        </span>
+        <span class="profile-tag">${label}</span>
       `;
 
       cell.appendChild(chip);
