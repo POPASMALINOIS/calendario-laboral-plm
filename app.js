@@ -341,10 +341,17 @@ function createDayCell(date, mini = false) {
   if (assignments.length) {
     cell.classList.add("has-soft");
 
-    const strip = document.createElement("div");
-    strip.className = "day-color-strip";
-    strip.style.background = buildDayBackground(assignments);
-    cell.appendChild(strip);
+    const mainColor = assignments[0].type === "event"
+      ? "#111827"
+      : getColor(assignments[0].category);
+
+    cell.style.setProperty("--day-main-color", mainColor);
+    cell.style.setProperty("--day-bars", buildDayBackground(assignments));
+
+    const bars = document.createElement("div");
+    bars.className = "day-side-bars";
+    bars.style.background = buildDayBackground(assignments);
+    cell.appendChild(bars);
   }
 
   const num = document.createElement("div");
@@ -364,8 +371,12 @@ function createDayCell(date, mini = false) {
       const chip = document.createElement("div");
       chip.className = item.type === "event" ? "profile-shift event-chip" : "profile-shift";
 
+      const chipColor = item.type === "event"
+        ? "#111827"
+        : getColor(item.category);
+
       chip.innerHTML = `
-        <span class="profile-dot" style="background:${item.profile.color}"></span>
+        <span class="profile-dot" style="background:${chipColor}"></span>
         <span class="profile-name">${item.profile.name}</span>
         <span class="profile-tag">
           ${item.type === "event"
@@ -386,6 +397,21 @@ function createDayCell(date, mini = false) {
   }
 
   cell.onclick = () => toggleDate(key);
+
+  cell.oncontextmenu = e => {
+    e.preventDefault();
+    openDayOptions(key);
+  };
+
+  let pressTimer = null;
+
+  cell.addEventListener("touchstart", () => {
+    pressTimer = setTimeout(() => openDayOptions(key), 650);
+  });
+
+  cell.addEventListener("touchend", () => {
+    clearTimeout(pressTimer);
+  });
 
   return cell;
 }
@@ -1641,6 +1667,61 @@ function createPersonalEvent(dateKey, profile) {
 function getPersonalEventsForDay(profile, dateKey) {
   profile.events ||= [];
   return profile.events.filter(ev => ev.date === dateKey);
+}
+
+function openDayOptions(dateKey) {
+  const profile = getEditableProfile();
+
+  if (!profile) {
+    alert("Selecciona un perfil individual para editar o eliminar eventos.");
+    return;
+  }
+
+  const events = getPersonalEventsForDay(profile, dateKey);
+
+  if (!events.length) {
+    openEditModal(dateKey);
+    return;
+  }
+
+  let text = `Eventos de ${dateKey}:\n\n`;
+
+  events.forEach((ev, index) => {
+    text += `${index + 1}. ${ev.title}${ev.allDay ? " · Todo el día" : " · " + ev.time}\n`;
+  });
+
+  text += "\nEscribe el número del evento que quieres eliminar o deja vacío para cancelar.";
+
+  const selected = prompt(text, "");
+
+  if (!selected) return;
+
+  const index = Number(selected) - 1;
+
+  if (!events[index]) {
+    alert("Evento no encontrado.");
+    return;
+  }
+
+  if (!confirm(`¿Eliminar el evento "${events[index].title}"?`)) return;
+
+  deletePersonalEvent(profile, events[index].id);
+
+  saveState();
+  renderAll();
+}
+
+function deletePersonalEvent(profile, eventId) {
+  profile.events ||= [];
+  const event = profile.events.find(ev => String(ev.id) === String(eventId));
+
+  profile.events = profile.events.filter(ev => String(ev.id) !== String(eventId));
+
+  if (event) {
+    state.reminders = (state.reminders || []).filter(rem => {
+      return !(rem.title === `Recordatorio: ${event.title}` && rem.body.includes(event.allDay ? "Evento de todo el día" : event.time));
+    });
+  }
 }
 
 function renderAll() {
