@@ -683,3 +683,12 @@ function renderAll(){
 }
 
 document.addEventListener("DOMContentLoaded", renderAll);
+window.addEventListener("load", () => {
+  const splash = document.getElementById("splashScreen");
+
+  setTimeout(() => {
+    if (splash) {
+      splash.classList.add("hidden");
+    }
+  }, 1200);
+});
