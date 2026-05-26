@@ -958,3 +958,52 @@ body.dark .bottom-nav{
   opacity:0;
   cursor:pointer;
 }
+.day.has-soft{
+  background:var(--card);
+  color:var(--text);
+  border-color:rgba(15,23,42,.06);
+}
+
+.day-color-strip{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:7px;
+  z-index:1;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+
+.day.has-soft .day-number{
+  color:var(--text);
+  margin-top:4px;
+}
+
+.day.has-soft .holiday-label{
+  color:var(--danger);
+}
+
+.profile-shift{
+  background:rgba(15,23,42,.08);
+  color:var(--text);
+  border:1px solid rgba(15,23,42,.05);
+}
+
+body.dark .profile-shift{
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.06);
+}
+
+.event-chip{
+  background:rgba(17,24,39,.92)!important;
+  color:white!important;
+}
+
+.event-chip .profile-tag{
+  max-width:72px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
