@@ -1032,16 +1032,16 @@ body.dark .profile-shift{
 
 .day.has-soft .day-number{
   color:var(--text);
-  margin-left:6px;
+  margin-left:12px;
 }
 
 .day.has-soft .holiday-label{
   color:var(--danger);
-  margin-left:6px;
+  margin-left:12px;
 }
 
 .day.has-soft .profile-shift{
-  margin-left:6px;
+  margin-left:12px;
 }
 
 .profile-shift{
