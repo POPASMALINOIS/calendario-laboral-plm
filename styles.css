@@ -588,12 +588,7 @@ body.dark .day{
 }
 
 .profile-name{
-  min-width:0;
-  max-width:42px;
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-  font-weight:850;
+  display:none;
 }
 
 .profile-tag{
@@ -1072,4 +1067,33 @@ body.dark .profile-shift{
   overflow:hidden;
   white-space:nowrap;
   text-overflow:ellipsis;
+}
+.day{
+  overflow:visible;
+}
+
+.calendar-grid{
+  row-gap:18px;
+}
+
+.profile-shift{
+  position:relative;
+  z-index:20;
+  min-width:58px;
+  width:max-content;
+  max-width:92px;
+  padding:4px 7px;
+  border-radius:999px;
+}
+
+.profile-tag{
+  display:inline-block;
+  max-width:52px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.day.has-soft .profile-shift{
+  margin-left:14px;
 }
