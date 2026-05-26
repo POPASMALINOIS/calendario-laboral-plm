@@ -20,7 +20,6 @@ const monthNames = ["enero","febrero","marzo","abril","mayo","junio","julio","ag
 const weekDays = ["L","M","X","J","V","S","D"];
 
 let oldState = JSON.parse(localStorage.getItem("laboralAppPLM") || "null") || {};
-
 let state = oldState;
 
 if (!state.profiles) {
@@ -31,32 +30,26 @@ if (!state.profiles) {
         name: "Perfil 1",
         color: "#2563eb",
         reduced: false,
-        shifts: {
-          manana: 8,
-          tarde: 8,
-          noche: 8
-        },
+        shifts: { manana: 8, tarde: 8, noche: 8 },
         calendar: oldState.calendar || {},
         counters: oldState.counters || {},
         history: oldState.history || [],
         extras: oldState.extras || [],
-        notes: oldState.notes || {}
+        notes: oldState.notes || {},
+        events: oldState.events || []
       },
       profile2: {
         id: "profile2",
         name: "Perfil 2",
         color: "#ec4899",
         reduced: false,
-        shifts: {
-          manana: 8,
-          tarde: 8,
-          noche: 8
-        },
+        shifts: { manana: 8, tarde: 8, noche: 8 },
         calendar: {},
         counters: {},
         history: [],
         extras: [],
-        notes: {}
+        notes: {},
+        events: []
       }
     },
     activeProfile: "profile1",
@@ -71,6 +64,16 @@ state.activeProfile ||= "profile1";
 state.colors ||= {};
 state.reminders ||= [];
 state.view ||= "month";
+
+Object.values(state.profiles).forEach(profile => {
+  profile.calendar ||= {};
+  profile.counters ||= {};
+  profile.history ||= [];
+  profile.extras ||= [];
+  profile.notes ||= {};
+  profile.events ||= [];
+  profile.shifts ||= { manana: 8, tarde: 8, noche: 8 };
+});
 
 let currentDate = new Date();
 let summaryYear = currentDate.getFullYear();
@@ -90,18 +93,12 @@ function getProfile(id) {
 }
 
 function activeProfiles() {
-  if (state.activeProfile === "all") {
-    return getProfiles();
-  }
-
+  if (state.activeProfile === "all") return getProfiles();
   return [getProfile(state.activeProfile)].filter(Boolean);
 }
 
 function getEditableProfile() {
-  if (state.activeProfile === "all") {
-    return null;
-  }
-
+  if (state.activeProfile === "all") return null;
   return getProfile(state.activeProfile);
 }
 
@@ -129,12 +126,12 @@ function addDays(d, n) {
 }
 
 function getColor(id) {
-  if (id === "evento") return "#0f172a";
+  if (id === "evento") return "#111827";
   return state.colors[id] || categories.find(c => c.id === id)?.color || "#2563eb";
 }
 
 function getCategoryName(id) {
-  if (id === "evento") return "EVENTO";
+  if (id === "evento") return "EVENTO PERSONAL";
   return categories.find(c => c.id === id)?.name || id;
 }
 
@@ -292,12 +289,15 @@ function buildDayBackground(assignments) {
   const colors = assignments.map(a => a.type === "event" ? "#111827" : getColor(a.category));
 
   if (!colors.length) return "";
-
   if (colors.length === 1) return colors[0];
 
   const step = 100 / colors.length;
+  return `linear-gradient(180deg, ${colors.map((c,i) => `${c} ${i * step}% ${(i + 1) * step}%`).join(", ")})`;
+}
 
-  return `linear-gradient(90deg, ${colors.map((c,i) => `${c} ${i * step}% ${(i + 1) * step}%`).join(", ")})`;
+function getPersonalEventsForDay(profile, dateKey) {
+  profile.events ||= [];
+  return profile.events.filter(ev => ev.date === dateKey);
 }
 
 function getDayAssignments(key) {
@@ -339,19 +339,19 @@ function createDayCell(date, mini = false) {
   if (key === today) cell.classList.add("today");
 
   if (assignments.length) {
-  cell.classList.add("has-soft");
+    cell.classList.add("has-soft");
 
-  const mainColor = assignments[0].type === "event"
-    ? "#111827"
-    : getColor(assignments[0].category);
+    const mainColor = assignments[0].type === "event"
+      ? "#111827"
+      : getColor(assignments[0].category);
 
-  cell.style.setProperty("--day-main-color", mainColor);
+    cell.style.setProperty("--day-main-color", mainColor);
 
-  const bars = document.createElement("div");
-  bars.className = "day-side-bars";
-  bars.style.background = buildDayBackground(assignments);
-  cell.appendChild(bars);
-}
+    const bars = document.createElement("div");
+    bars.className = "day-side-bars";
+    bars.style.background = buildDayBackground(assignments);
+    cell.appendChild(bars);
+  }
 
   const num = document.createElement("div");
   num.className = "day-number" + (holiday ? " holiday" : "");
@@ -366,9 +366,9 @@ function createDayCell(date, mini = false) {
   }
 
   if (!mini) {
-    assignments.slice(0, 4).forEach(item => {
+    assignments.slice(0, 3).forEach(item => {
       const chip = document.createElement("div");
-      chip.className = item.type === "event" ? "profile-shift event-chip" : "profile-shift";
+      chip.className = "profile-shift";
 
       const chipColor = item.type === "event"
         ? "#111827"
@@ -377,17 +377,17 @@ function createDayCell(date, mini = false) {
       const label = item.type === "event"
         ? (item.event.allDay ? "EV" : item.event.time)
         : getCategoryTag(item.category);
-      
-      chip.style.borderLeft = `5px solid ${chipColor}`;
+
+      chip.style.background = chipColor;
       chip.textContent = label;
 
       cell.appendChild(chip);
     });
 
-    if (assignments.length > 4) {
+    if (assignments.length > 3) {
       const more = document.createElement("div");
-      more.className = "profile-shift more";
-      more.textContent = `+${assignments.length - 4}`;
+      more.className = "profile-shift more-chip";
+      more.textContent = `+${assignments.length - 3}`;
       cell.appendChild(more);
     }
   }
@@ -551,6 +551,110 @@ function renderCalendar() {
   if (state.view === "year") renderYearCalendar();
 }
 
+function createPersonalEvent(dateKey, profile) {
+  profile.events ||= [];
+
+  const title = prompt("Título del evento:", "");
+  if (!title) return;
+
+  const allDay = confirm("¿El evento ocupa todo el día?\n\nAceptar = todo el día\nCancelar = indicar hora");
+
+  let time = "";
+
+  if (!allDay) {
+    time = prompt("Hora del evento. Ejemplo: 17:30", "");
+    if (!time) return;
+  }
+
+  const reminder = prompt(
+    "Recordatorio en minutos antes del evento.\nEjemplos: 15, 30, 60, 1440.\nDéjalo vacío si no quieres recordatorio.",
+    "30"
+  );
+
+  const event = {
+    id: Date.now(),
+    date: dateKey,
+    title,
+    allDay,
+    time,
+    reminderMinutes: reminder ? Number(reminder) || 0 : 0
+  };
+
+  profile.events.push(event);
+
+  if (event.reminderMinutes > 0) {
+    const baseDate = new Date(`${dateKey}T${allDay ? "09:00" : time}`);
+    const reminderDate = new Date(baseDate.getTime() - event.reminderMinutes * 60000);
+
+    state.reminders ||= [];
+    state.reminders.push({
+      id: Date.now() + 1,
+      title: `Recordatorio: ${title}`,
+      body: allDay ? "Evento de todo el día" : `Evento a las ${time}`,
+      date: reminderDate.toISOString().slice(0,16),
+      triggered: false
+    });
+  }
+
+  saveState();
+  renderAll();
+  alert("Evento guardado.");
+}
+
+function openDayOptions(dateKey) {
+  const profile = getEditableProfile();
+
+  if (!profile) {
+    alert("Selecciona un perfil individual para editar o eliminar eventos.");
+    return;
+  }
+
+  const events = getPersonalEventsForDay(profile, dateKey);
+
+  if (!events.length) {
+    openEditModal(dateKey);
+    return;
+  }
+
+  let text = `Eventos de ${dateKey}:\n\n`;
+
+  events.forEach((ev, index) => {
+    text += `${index + 1}. ${ev.title}${ev.allDay ? " · Todo el día" : " · " + ev.time}\n`;
+  });
+
+  text += "\nEscribe el número del evento que quieres eliminar o deja vacío para cancelar.";
+
+  const selected = prompt(text, "");
+  if (!selected) return;
+
+  const index = Number(selected) - 1;
+
+  if (!events[index]) {
+    alert("Evento no encontrado.");
+    return;
+  }
+
+  if (!confirm(`¿Eliminar el evento "${events[index].title}"?`)) return;
+
+  deletePersonalEvent(profile, events[index].id);
+
+  saveState();
+  renderAll();
+}
+
+function deletePersonalEvent(profile, eventId) {
+  profile.events ||= [];
+
+  const event = profile.events.find(ev => String(ev.id) === String(eventId));
+  profile.events = profile.events.filter(ev => String(ev.id) !== String(eventId));
+
+  if (event) {
+    state.reminders = (state.reminders || []).filter(rem => {
+      return !(rem.title === `Recordatorio: ${event.title}`);
+    });
+  }
+}
+
 function toggleDate(key) {
   const profile = getEditableProfile();
 
@@ -574,6 +678,10 @@ function toggleDate(key) {
 
     if (profile.notes[key]?.[selectedCategory]) {
       delete profile.notes[key][selectedCategory];
+    }
+
+    if (profile.notes[key] && !Object.keys(profile.notes[key]).length) {
+      delete profile.notes[key];
     }
 
   } else {
@@ -898,10 +1006,7 @@ function renderHistoryList() {
   box.innerHTML = rows.map(({profile,item}) => `
     <div class="list-item">
       <strong>${item.date}</strong>
-      <div>
-        <span class="profile-dot" style="background:${profile.color}"></span>
-        ${profile.name} · ${getCategoryName(item.category)}${item.hours ? ` · ${item.hours} h` : ""}
-      </div>
+      <div>${profile.name} · ${getCategoryName(item.category)}${item.hours ? ` · ${item.hours} h` : ""}</div>
       <div class="small">${item.note || "Sin observaciones"}</div>
       <br>
       <button class="danger" onclick="deleteHistoryItem('${profile.id}','${item.id}')">Eliminar</button>
@@ -982,10 +1087,7 @@ function renderExtraList() {
     ${rows.map(({profile,item}) => `
       <div class="list-item">
         <strong>${item.date}</strong>
-        <div>
-          <span class="profile-dot" style="background:${profile.color}"></span>
-          ${profile.name} · ${item.hours} horas
-        </div>
+        <div>${profile.name} · ${item.hours} horas</div>
         <div class="small">${item.note || "Sin observaciones"}</div>
       </div>
     `).join("")}
@@ -1185,16 +1287,12 @@ function saveEditModal() {
 
   profile.calendar ||= {};
   profile.notes ||= {};
-  profile.history ||= {};
 
   if (!profile.calendar[editingDateKey]) profile.calendar[editingDateKey] = [];
   if (!profile.calendar[editingDateKey].includes(catId)) profile.calendar[editingDateKey].push(catId);
 
   profile.notes[editingDateKey] ||= {};
-  profile.notes[editingDateKey][catId] = {
-    note,
-    hours
-  };
+  profile.notes[editingDateKey][catId] = { note, hours };
 
   saveState();
   closeEditModal();
@@ -1310,122 +1408,23 @@ function exportAnnualCalendarPDF() {
     <meta charset="UTF-8">
     <title>Calendario Laboral ${year}</title>
     <style>
-      body{
-        font-family:Arial,sans-serif;
-        margin:14px;
-        color:#111827;
-      }
-
-      h1{
-        text-align:center;
-        font-size:22px;
-        margin:0 0 14px;
-      }
-
-      .year-grid{
-        display:grid;
-        grid-template-columns:repeat(3,1fr);
-        gap:10px;
-      }
-
-      .month{
-        border:1px solid #d1d5db;
-        border-radius:10px;
-        padding:7px;
-        page-break-inside:avoid;
-      }
-
-      .month h2{
-        text-align:center;
-        font-size:13px;
-        margin:0 0 6px;
-        text-transform:capitalize;
-      }
-
-      .weekdays,
-      .days{
-        display:grid;
-        grid-template-columns:repeat(7,1fr);
-        gap:2px;
-      }
-
-      .weekday{
-        font-size:7px;
-        font-weight:bold;
-        text-align:center;
-        color:#6b7280;
-      }
-
-      .day{
-        min-height:30px;
-        border:1px solid #e5e7eb;
-        border-radius:5px;
-        padding:2px;
-        font-size:7px;
-        overflow:hidden;
-      }
-
-      .empty{
-        border:none;
-      }
-
-      .has{
-        color:white;
-        font-weight:bold;
-        -webkit-print-color-adjust:exact;
-        print-color-adjust:exact;
-      }
-
-      .tag{
-        display:block;
-        font-size:6px;
-        margin-top:1px;
-        background:rgba(0,0,0,.25);
-        color:white;
-        border-radius:4px;
-        padding:1px 2px;
-      }
-
-      .legend{
-        margin-top:12px;
-        border-top:1px solid #d1d5db;
-        padding-top:8px;
-      }
-
-      .legend h3{
-        text-align:center;
-        font-size:11px;
-        margin:0 0 6px;
-      }
-
-      .legend-grid{
-        display:grid;
-        grid-template-columns:repeat(4,1fr);
-        gap:4px 8px;
-        font-size:7px;
-      }
-
-      .legend-item{
-        display:flex;
-        align-items:center;
-        gap:4px;
-      }
-
-      .legend-color{
-        width:9px;
-        height:9px;
-        border-radius:2px;
-        border:1px solid #555;
-        -webkit-print-color-adjust:exact;
-        print-color-adjust:exact;
-      }
-
-      @media print{
-        @page{
-          size:A4 portrait;
-          margin:10mm;
-        }
-      }
+      body{font-family:Arial,sans-serif;margin:14px;color:#111827;}
+      h1{text-align:center;font-size:22px;margin:0 0 14px;}
+      .year-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+      .month{border:1px solid #d1d5db;border-radius:10px;padding:7px;page-break-inside:avoid;}
+      .month h2{text-align:center;font-size:13px;margin:0 0 6px;text-transform:capitalize;}
+      .weekdays,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+      .weekday{font-size:7px;font-weight:bold;text-align:center;color:#6b7280;}
+      .day{min-height:30px;border:1px solid #e5e7eb;border-radius:5px;padding:2px;font-size:7px;overflow:hidden;}
+      .empty{border:none;}
+      .has{color:white;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      .tag{display:block;font-size:6px;margin-top:1px;background:rgba(0,0,0,.25);color:white;border-radius:4px;padding:1px 2px;}
+      .legend{margin-top:12px;border-top:1px solid #d1d5db;padding-top:8px;}
+      .legend h3{text-align:center;font-size:11px;margin:0 0 6px;}
+      .legend-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 8px;font-size:7px;}
+      .legend-item{display:flex;align-items:center;gap:4px;}
+      .legend-color{width:9px;height:9px;border-radius:2px;border:1px solid #555;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      @media print{@page{size:A4 portrait;margin:10mm;}}
     </style>
   </head>
   <body>
@@ -1435,7 +1434,6 @@ function exportAnnualCalendarPDF() {
 
   for (let m = 0; m < 12; m++) {
     html += `<div class="month"><h2>${monthNames[m]}</h2>`;
-
     html += `<div class="weekdays">`;
     weekDays.forEach(w => html += `<div class="weekday">${w}</div>`);
     html += `</div><div class="days">`;
@@ -1446,9 +1444,7 @@ function exportAnnualCalendarPDF() {
     let start = first.getDay();
     start = start === 0 ? 6 : start - 1;
 
-    for (let i = 0; i < start; i++) {
-      html += `<div class="day empty"></div>`;
-    }
+    for (let i = 0; i < start; i++) html += `<div class="day empty"></div>`;
 
     for (let d = 1; d <= last.getDate(); d++) {
       const date = new Date(year, m, d);
@@ -1456,13 +1452,10 @@ function exportAnnualCalendarPDF() {
       const assignments = getDayAssignments(key);
       const background = buildDayBackground(assignments);
 
-      html += `
-        <div class="day ${assignments.length ? "has" : ""}" style="${background ? `background:${background};` : ""}">
-          <strong>${d}</strong>
-      `;
+      html += `<div class="day ${assignments.length ? "has" : ""}" style="${background ? `background:${background};` : ""}"><strong>${d}</strong>`;
 
       assignments.slice(0, 2).forEach(item => {
-        html += `<span class="tag">${item.profile.name} · ${getCategoryTag(item.category)}</span>`;
+        html += `<span class="tag">${item.profile.name} · ${item.type === "event" ? "EV" : getCategoryTag(item.category)}</span>`;
       });
 
       html += `</div>`;
@@ -1471,44 +1464,17 @@ function exportAnnualCalendarPDF() {
     html += `</div></div>`;
   }
 
-  html += `
-    </div>
-
-    <div class="legend">
-      <h3>Leyenda de colores</h3>
-      <div class="legend-grid">
-  `;
+  html += `</div><div class="legend"><h3>Leyenda de colores</h3><div class="legend-grid">`;
 
   categories.forEach(cat => {
-    html += `
-      <div class="legend-item">
-        <span class="legend-color" style="background:${getColor(cat.id)}"></span>
-        <span><strong>${cat.tag}</strong> ${cat.name}</span>
-      </div>
-    `;
+    html += `<div class="legend-item"><span class="legend-color" style="background:${getColor(cat.id)}"></span><span><strong>${cat.tag}</strong> ${cat.name}</span></div>`;
   });
 
   getProfiles().forEach(profile => {
-    html += `
-      <div class="legend-item">
-        <span class="legend-color" style="background:${profile.color}"></span>
-        <span>${profile.name}</span>
-      </div>
-    `;
+    html += `<div class="legend-item"><span class="legend-color" style="background:${profile.color}"></span><span>${profile.name}</span></div>`;
   });
 
-  html += `
-      </div>
-    </div>
-
-    <script>
-      window.onload = function(){
-        window.print();
-      };
-    </script>
-  </body>
-  </html>
-  `;
+  html += `</div></div><script>window.onload=function(){window.print();};</script></body></html>`;
 
   const win = window.open("", "_blank");
   win.document.open();
@@ -1606,117 +1572,6 @@ function resetApp() {
   if (confirm("¿Seguro que deseas borrar todos los datos?")) {
     localStorage.removeItem("laboralAppPLM");
     location.reload();
-  }
-}
-
-function createPersonalEvent(dateKey, profile) {
-  profile.events ||= [];
-
-  const title = prompt("Título del evento:", "");
-  if (!title) return;
-
-  const allDay = confirm("¿El evento ocupa todo el día?\n\nAceptar = todo el día\nCancelar = indicar hora");
-
-  let time = "";
-
-  if (!allDay) {
-    time = prompt("Hora del evento. Ejemplo: 17:30", "");
-    if (!time) return;
-  }
-
-  const reminder = prompt(
-    "Recordatorio en minutos antes del evento.\nEjemplos: 15, 30, 60, 1440.\nDéjalo vacío si no quieres recordatorio.",
-    "30"
-  );
-
-  const event = {
-    id: Date.now(),
-    date: dateKey,
-    title,
-    allDay,
-    time,
-    reminderMinutes: reminder ? Number(reminder) || 0 : 0
-  };
-
-  profile.events.push(event);
-
-  if (event.reminderMinutes > 0) {
-    const baseDate = new Date(`${dateKey}T${allDay ? "09:00" : time}`);
-    const reminderDate = new Date(baseDate.getTime() - event.reminderMinutes * 60000);
-
-    state.reminders ||= [];
-    state.reminders.push({
-      id: Date.now() + 1,
-      title: `Recordatorio: ${title}`,
-      body: allDay ? "Evento de todo el día" : `Evento a las ${time}`,
-      date: reminderDate.toISOString().slice(0,16),
-      triggered: false
-    });
-  }
-
-  saveState();
-  renderAll();
-
-  alert("Evento guardado.");
-}
-
-function getPersonalEventsForDay(profile, dateKey) {
-  profile.events ||= [];
-  return profile.events.filter(ev => ev.date === dateKey);
-}
-
-function openDayOptions(dateKey) {
-  const profile = getEditableProfile();
-
-  if (!profile) {
-    alert("Selecciona un perfil individual para editar o eliminar eventos.");
-    return;
-  }
-
-  const events = getPersonalEventsForDay(profile, dateKey);
-
-  if (!events.length) {
-    openEditModal(dateKey);
-    return;
-  }
-
-  let text = `Eventos de ${dateKey}:\n\n`;
-
-  events.forEach((ev, index) => {
-    text += `${index + 1}. ${ev.title}${ev.allDay ? " · Todo el día" : " · " + ev.time}\n`;
-  });
-
-  text += "\nEscribe el número del evento que quieres eliminar o deja vacío para cancelar.";
-
-  const selected = prompt(text, "");
-
-  if (!selected) return;
-
-  const index = Number(selected) - 1;
-
-  if (!events[index]) {
-    alert("Evento no encontrado.");
-    return;
-  }
-
-  if (!confirm(`¿Eliminar el evento "${events[index].title}"?`)) return;
-
-  deletePersonalEvent(profile, events[index].id);
-
-  saveState();
-  renderAll();
-}
-
-function deletePersonalEvent(profile, eventId) {
-  profile.events ||= [];
-  const event = profile.events.find(ev => String(ev.id) === String(eventId));
-
-  profile.events = profile.events.filter(ev => String(ev.id) !== String(eventId));
-
-  if (event) {
-    state.reminders = (state.reminders || []).filter(rem => {
-      return !(rem.title === `Recordatorio: ${event.title}` && rem.body.includes(event.allDay ? "Evento de todo el día" : event.time));
-    });
   }
 }
 
