@@ -1120,3 +1120,28 @@ body.dark .profile-shift{
   position:relative;
   z-index:2;
 }
+.day{
+  overflow:hidden;
+}
+
+.calendar-grid{
+  overflow:hidden;
+  width:100%;
+}
+
+.profile-shift{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+}
+
+.profile-tag{
+  max-width:100%;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.day.has-soft .profile-shift{
+  margin-left:14px;
+  width:calc(100% - 16px);
+}
