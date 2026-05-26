@@ -1097,3 +1097,26 @@ body.dark .profile-shift{
 .day.has-soft .profile-shift{
   margin-left:14px;
 }
+.year-mini-day.has-soft{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--day-main-color) 35%, var(--card)),
+      var(--card) 70%
+    );
+  border:1px solid color-mix(in srgb, var(--day-main-color) 55%, transparent);
+}
+
+.year-mini-day .day-side-bars{
+  width:8px;
+  border-radius:9px 0 0 9px;
+}
+
+.year-mini-day.has-soft .day-number{
+  margin-left:8px;
+  color:var(--text);
+  position:relative;
+  z-index:2;
+}
