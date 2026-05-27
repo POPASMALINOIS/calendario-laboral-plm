@@ -1,3 +1,7 @@
+/* ==================================================
+   CALENDARIO LABORAL PLM - APP.JS LIMPIO
+================================================== */
+
 const categories = [
   { id: "turno_manana", name: "TURNO MAÑANA", tag: "TM", type: "days", countable: false, color: "#2563eb", shift: "manana" },
   { id: "turno_tarde", name: "TURNO TARDE", tag: "TT", type: "days", countable: false, color: "#f97316", shift: "tarde" },
@@ -16,8 +20,17 @@ const categories = [
 ];
 
 const HOURS_PER_DAY = 8;
-const monthNames = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+const monthNames = [
+  "enero","febrero","marzo","abril","mayo","junio",
+  "julio","agosto","septiembre","octubre","noviembre","diciembre"
+];
+
 const weekDays = ["L","M","X","J","V","S","D"];
+
+/* ==================================================
+   ESTADO LOCAL
+================================================== */
 
 let oldState = JSON.parse(localStorage.getItem("laboralAppPLM") || "null") || {};
 let state = oldState;
@@ -59,98 +72,136 @@ if (!state.profiles) {
   };
 }
 
-state.profiles ||= {};
-state.activeProfile ||= "profile1";
-state.colors ||= {};
-state.reminders ||= [];
-state.view ||= "month";
+function normalizeState(){
+  state.profiles ||= {};
+  state.activeProfile ||= "profile1";
+  state.colors ||= {};
+  state.reminders ||= [];
+  state.view ||= "month";
 
-Object.values(state.profiles).forEach(profile => {
-  profile.calendar ||= {};
-  profile.counters ||= {};
-  profile.history ||= [];
-  profile.extras ||= [];
-  profile.notes ||= {};
-  profile.events ||= [];
-  profile.shifts ||= { manana: 8, tarde: 8, noche: 8 };
-});
+  Object.values(state.profiles).forEach(profile => {
+    profile.calendar ||= {};
+    profile.counters ||= {};
+    profile.history ||= [];
+    profile.extras ||= [];
+    profile.notes ||= {};
+    profile.events ||= [];
+    profile.shifts ||= { manana: 8, tarde: 8, noche: 8 };
+    profile.reduced ||= false;
+    profile.color ||= "#2563eb";
+  });
+}
+
+normalizeState();
 
 let currentDate = new Date();
 let summaryYear = currentDate.getFullYear();
 let selectedCategory = "turno_manana";
 let editingDateKey = null;
 
-function saveState() {
+/* ==================================================
+   CONTROL FIREBASE / RENDER
+================================================== */
+
+let cloudUnsubscribe = null;
+let lastCloudUpdatedAt = 0;
+let isApplyingCloudData = false;
+let isEditingForm = false;
+let pendingCloudState = null;
+let saveCloudTimer = null;
+
+function saveState(){
   localStorage.setItem("laboralAppPLM", JSON.stringify(state));
 }
 
-function getProfiles() {
+function scheduleCloudSave(){
+  if (typeof saveCloudData !== "function") return;
+
+  clearTimeout(saveCloudTimer);
+
+  saveCloudTimer = setTimeout(() => {
+    saveCloudData();
+  }, 600);
+}
+
+/* ==================================================
+   HELPERS
+================================================== */
+
+function getProfiles(){
   return Object.values(state.profiles);
 }
 
-function getProfile(id) {
+function getProfile(id){
   return state.profiles[id];
 }
 
-function activeProfiles() {
+function activeProfiles(){
   if (state.activeProfile === "all") return getProfiles();
   return [getProfile(state.activeProfile)].filter(Boolean);
 }
 
-function getEditableProfile() {
+function getEditableProfile(){
   if (state.activeProfile === "all") return null;
   return getProfile(state.activeProfile);
 }
 
-function setActiveProfile(id) {
+function setActiveProfile(id){
   state.activeProfile = id;
   saveState();
-  renderAll();
+  renderAllSafe();
+  scheduleCloudSave();
 }
 
-function formatAmount(value) {
+function formatAmount(value){
   const rounded = Math.round(Number(value || 0) * 100) / 100;
-  return Number.isInteger(rounded) ? String(rounded) : String(rounded).replace(".", ",");
+  return Number.isInteger(rounded)
+    ? String(rounded)
+    : String(rounded).replace(".", ",");
 }
 
-function formatDate(d) {
+function formatDate(d){
   return d.getFullYear() + "-" +
     String(d.getMonth() + 1).padStart(2, "0") + "-" +
     String(d.getDate()).padStart(2, "0");
 }
 
-function addDays(d, n) {
+function addDays(d, n){
   const x = new Date(d);
   x.setDate(x.getDate() + n);
   return x;
 }
 
-function getColor(id) {
+function getColor(id){
   if (id === "evento") return "#111827";
   return state.colors[id] || categories.find(c => c.id === id)?.color || "#2563eb";
 }
 
-function getCategoryName(id) {
+function getCategoryName(id){
   if (id === "evento") return "EVENTO PERSONAL";
   return categories.find(c => c.id === id)?.name || id;
 }
 
-function getCategoryTag(id) {
+function getCategoryTag(id){
   if (id === "evento") return "EV";
   return categories.find(c => c.id === id)?.tag || id;
 }
 
-function showTab(id, btn) {
+function showTab(id, btn){
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+  document.getElementById(id)?.classList.add("active");
 
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
 
-  renderAll();
+  renderAllSafe();
 }
 
-function renderYearSelectors() {
+/* ==================================================
+   SELECTORES
+================================================== */
+
+function renderYearSelectors(){
   ["summaryYear","counterYear","calendarYearSelect"].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -178,7 +229,7 @@ function renderYearSelectors() {
   if (calendar) calendar.value = currentDate.getFullYear();
 }
 
-function renderProfileSelectors() {
+function renderProfileSelectors(){
   const selectors = [
     "summaryProfileSelect",
     "calendarProfileSelect",
@@ -192,6 +243,7 @@ function renderProfileSelectors() {
     const el = document.getElementById(id);
     if (!el) return;
 
+    const previous = el.value || state.activeProfile;
     el.innerHTML = "";
 
     const all = document.createElement("option");
@@ -206,11 +258,13 @@ function renderProfileSelectors() {
       el.appendChild(opt);
     });
 
-    el.value = state.activeProfile;
+    el.value = getProfile(previous) || previous === "all"
+      ? previous
+      : state.activeProfile;
   });
 }
 
-function renderCategorySelect() {
+function renderCategorySelect(){
   const select = document.getElementById("categorySelect");
   if (!select) return;
 
@@ -231,27 +285,28 @@ function renderCategorySelect() {
   select.value = selectedCategory;
 }
 
-function setSelectedCategory(v) {
+function setSelectedCategory(v){
   selectedCategory = v;
 }
 
-function changeSummaryYear(y) {
+function changeSummaryYear(y){
   summaryYear = Number(y);
   renderSummary();
 }
 
-function jumpToYear(y) {
+function jumpToYear(y){
   currentDate.setFullYear(Number(y));
   renderCalendar();
 }
 
-function setCalendarView(v) {
+function setCalendarView(v){
   state.view = v;
   saveState();
   renderCalendar();
+  scheduleCloudSave();
 }
 
-function changePeriod(n) {
+function changePeriod(n){
   if (state.view === "year") currentDate.setFullYear(currentDate.getFullYear() + n);
   if (state.view === "month") currentDate.setMonth(currentDate.getMonth() + n);
   if (state.view === "week") currentDate.setDate(currentDate.getDate() + (n * 7));
@@ -262,12 +317,16 @@ function changePeriod(n) {
   renderCalendar();
 }
 
-function easter(y) {
+/* ==================================================
+   FESTIVOS
+================================================== */
+
+function easter(y){
   let a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;
   return new Date(y,mo-1,da);
 }
 
-function holidays(y) {
+function holidays(y){
   const h = {};
   const e = easter(y);
 
@@ -285,7 +344,11 @@ function holidays(y) {
   return h;
 }
 
-function buildDayBackground(assignments) {
+/* ==================================================
+   CALENDARIO
+================================================== */
+
+function buildDayBackground(assignments){
   const colors = assignments.map(a => a.type === "event" ? "#111827" : getColor(a.category));
 
   if (!colors.length) return "";
@@ -295,12 +358,12 @@ function buildDayBackground(assignments) {
   return `linear-gradient(180deg, ${colors.map((c,i) => `${c} ${i * step}% ${(i + 1) * step}%`).join(", ")})`;
 }
 
-function getPersonalEventsForDay(profile, dateKey) {
+function getPersonalEventsForDay(profile, dateKey){
   profile.events ||= [];
   return profile.events.filter(ev => ev.date === dateKey);
 }
 
-function getDayAssignments(key) {
+function getDayAssignments(key){
   const result = [];
 
   activeProfiles().forEach(profile => {
@@ -327,7 +390,7 @@ function getDayAssignments(key) {
   return result;
 }
 
-function createDayCell(date, mini = false) {
+function createDayCell(date, mini = false){
   const key = formatDate(date);
   const holiday = holidays(date.getFullYear())[key];
   const today = formatDate(new Date());
@@ -388,6 +451,7 @@ function createDayCell(date, mini = false) {
     if (assignments.length > 3) {
       const more = document.createElement("div");
       more.className = "profile-shift more-chip";
+      more.style.top = `${30 + (3 * 22)}px`;
       more.textContent = `+${assignments.length - 3}`;
       cell.appendChild(more);
     }
@@ -412,10 +476,14 @@ function createDayCell(date, mini = false) {
 
   return cell;
 }
+/* ==================================================
+   RENDER CALENDARIO
+================================================== */
 
-function renderMonthCalendar() {
+function renderMonthCalendar(){
   const container = document.getElementById("calendarContainer");
   const title = document.getElementById("calendarTitle");
+  if (!container || !title) return;
 
   const y = currentDate.getFullYear();
   const m = currentDate.getMonth();
@@ -457,9 +525,10 @@ function renderMonthCalendar() {
   container.appendChild(grid);
 }
 
-function renderWeekCalendar() {
+function renderWeekCalendar(){
   const container = document.getElementById("calendarContainer");
   const title = document.getElementById("calendarTitle");
+  if (!container || !title) return;
 
   container.innerHTML = "";
 
@@ -492,9 +561,10 @@ function renderWeekCalendar() {
   container.appendChild(grid);
 }
 
-function renderYearCalendar() {
+function renderYearCalendar(){
   const container = document.getElementById("calendarContainer");
   const title = document.getElementById("calendarTitle");
+  if (!container || !title) return;
 
   const y = currentDate.getFullYear();
 
@@ -538,7 +608,7 @@ function renderYearCalendar() {
   container.appendChild(yearGrid);
 }
 
-function renderCalendar() {
+function renderCalendar(){
   const month = document.getElementById("viewMonth");
   const week = document.getElementById("viewWeek");
   const year = document.getElementById("viewYear");
@@ -552,7 +622,11 @@ function renderCalendar() {
   if (state.view === "year") renderYearCalendar();
 }
 
-function createPersonalEvent(dateKey, profile) {
+/* ==================================================
+   EVENTOS PERSONALES
+================================================== */
+
+function createPersonalEvent(dateKey, profile){
   profile.events ||= [];
 
   const title = prompt("Título del evento:", "");
@@ -598,11 +672,13 @@ function createPersonalEvent(dateKey, profile) {
   }
 
   saveState();
-  renderAll();
+  scheduleCloudSave();
+  renderAllSafe();
+
   alert("Evento guardado.");
 }
 
-function openDayOptions(dateKey) {
+function openDayOptions(dateKey){
   const profile = getEditableProfile();
 
   if (!profile) {
@@ -640,10 +716,11 @@ function openDayOptions(dateKey) {
   deletePersonalEvent(profile, events[index].id);
 
   saveState();
-  renderAll();
+  scheduleCloudSave();
+  renderAllSafe();
 }
 
-function deletePersonalEvent(profile, eventId) {
+function deletePersonalEvent(profile, eventId){
   profile.events ||= [];
 
   const event = profile.events.find(ev => String(ev.id) === String(eventId));
@@ -656,7 +733,11 @@ function deletePersonalEvent(profile, eventId) {
   }
 }
 
-function toggleDate(key) {
+/* ==================================================
+   MARCAR DÍAS
+================================================== */
+
+function toggleDate(key){
   const profile = getEditableProfile();
 
   if (!profile) {
@@ -731,12 +812,17 @@ function toggleDate(key) {
   if (!profile.calendar[key].length) delete profile.calendar[key];
 
   saveState();
+  scheduleCloudSave();
   renderCalendar();
   renderSummary();
   renderHistoryList();
 }
 
-function calculateProfileHours(profile, year) {
+/* ==================================================
+   CÁLCULOS
+================================================== */
+
+function calculateProfileHours(profile, year){
   let manana = 0;
   let tarde = 0;
   let noche = 0;
@@ -759,7 +845,7 @@ function calculateProfileHours(profile, year) {
   };
 }
 
-function calculateUsed(profile, catId, year) {
+function calculateUsed(profile, catId, year){
   const cat = categories.find(c => c.id === catId);
   if (!cat) return 0;
 
@@ -804,7 +890,11 @@ function calculateUsed(profile, catId, year) {
     .length;
 }
 
-function renderSummary() {
+/* ==================================================
+   DASHBOARD
+================================================== */
+
+function renderSummary(){
   const panel = document.getElementById("profileSummaryPanel");
   const grid = document.getElementById("summaryGrid");
 
@@ -899,15 +989,20 @@ function renderSummary() {
       });
   });
 }
+/* ==================================================
+   CONTADORES
+================================================== */
 
-function renderCounters() {
+function renderCounters(){
   const year = document.getElementById("counterYear")?.value || summaryYear;
   const box = document.getElementById("counterInputs");
   if (!box) return;
 
   box.innerHTML = "";
 
-  const profiles = state.activeProfile === "all" ? getProfiles() : activeProfiles();
+  const profiles = state.activeProfile === "all"
+    ? getProfiles()
+    : activeProfiles();
 
   profiles.forEach(profile => {
     const title = document.createElement("div");
@@ -941,7 +1036,7 @@ function renderCounters() {
   });
 }
 
-function changeCounterValue(profileId, catId, delta) {
+function changeCounterValue(profileId, catId, delta){
   const year = document.getElementById("counterYear")?.value || summaryYear;
   const profile = getProfile(profileId);
 
@@ -952,16 +1047,22 @@ function changeCounterValue(profileId, catId, delta) {
   profile.counters[year][catId] = Math.max(0, current + delta);
 
   saveState();
+  scheduleCloudSave();
   renderCounters();
   renderSummary();
 }
 
-function saveCounters() {
+function saveCounters(){
   saveState();
+  scheduleCloudSave();
   alert("Contadores guardados");
 }
 
-function renderHistoryForm() {
+/* ==================================================
+   HISTÓRICO
+================================================== */
+
+function renderHistoryForm(){
   const select = document.getElementById("historyCategory");
   if (!select) return;
 
@@ -980,7 +1081,7 @@ function renderHistoryForm() {
   });
 }
 
-function saveHistory() {
+function saveHistory(){
   const profile = getEditableProfile();
 
   if (!profile) {
@@ -1010,6 +1111,7 @@ function saveHistory() {
   });
 
   saveState();
+  scheduleCloudSave();
 
   document.getElementById("historyDate").value = "";
   document.getElementById("historyHours").value = "";
@@ -1019,11 +1121,14 @@ function saveHistory() {
   renderSummary();
 }
 
-function renderHistoryList() {
+function renderHistoryList(){
   const box = document.getElementById("historyList");
   if (!box) return;
 
-  const profiles = state.activeProfile === "all" ? getProfiles() : activeProfiles();
+  const profiles = state.activeProfile === "all"
+    ? getProfiles()
+    : activeProfiles();
+
   const rows = [];
 
   profiles.forEach(profile => {
@@ -1049,7 +1154,7 @@ function renderHistoryList() {
   `).join("");
 }
 
-function deleteHistoryItem(profileId, id) {
+function deleteHistoryItem(profileId, id){
   const profile = getProfile(profileId);
   if (!profile) return;
 
@@ -1058,11 +1163,16 @@ function deleteHistoryItem(profileId, id) {
   profile.history = (profile.history || []).filter(h => String(h.id) !== String(id));
 
   saveState();
+  scheduleCloudSave();
   renderHistoryList();
   renderSummary();
 }
 
-function saveExtra() {
+/* ==================================================
+   HORAS EXTRA
+================================================== */
+
+function saveExtra(){
   const profile = getEditableProfile();
 
   if (!profile) {
@@ -1089,6 +1199,7 @@ function saveExtra() {
   });
 
   saveState();
+  scheduleCloudSave();
 
   document.getElementById("extraDate").value = "";
   document.getElementById("extraHours").value = "";
@@ -1097,11 +1208,14 @@ function saveExtra() {
   renderExtraList();
 }
 
-function renderExtraList() {
+function renderExtraList(){
   const box = document.getElementById("extraList");
   if (!box) return;
 
-  const profiles = state.activeProfile === "all" ? getProfiles() : activeProfiles();
+  const profiles = state.activeProfile === "all"
+    ? getProfiles()
+    : activeProfiles();
+
   const rows = [];
 
   profiles.forEach(profile => {
@@ -1129,7 +1243,11 @@ function renderExtraList() {
   `;
 }
 
-function renderProfileSettings() {
+/* ==================================================
+   PERFILES
+================================================== */
+
+function renderProfileSettings(){
   const box = document.getElementById("profileSettings");
   if (!box) return;
 
@@ -1182,29 +1300,35 @@ function renderProfileSettings() {
   });
 }
 
-function saveProfiles() {
+function saveProfiles(){
   getProfiles().forEach(profile => {
-    profile.name = document.getElementById(`name-${profile.id}`).value || profile.name;
-    profile.color = document.getElementById(`profile-color-${profile.id}`).value || profile.color;
-    profile.reduced = document.getElementById(`reduced-${profile.id}`).checked;
+    profile.name = document.getElementById(`name-${profile.id}`)?.value || profile.name;
+    profile.color = document.getElementById(`profile-color-${profile.id}`)?.value || profile.color;
+    profile.reduced = document.getElementById(`reduced-${profile.id}`)?.checked || false;
 
     profile.shifts ||= {};
-    profile.shifts.manana = Number(document.getElementById(`manana-${profile.id}`).value || 8);
-    profile.shifts.tarde = Number(document.getElementById(`tarde-${profile.id}`).value || 8);
-    profile.shifts.noche = Number(document.getElementById(`noche-${profile.id}`).value || 8);
+    profile.shifts.manana = Number(document.getElementById(`manana-${profile.id}`)?.value || 8);
+    profile.shifts.tarde = Number(document.getElementById(`tarde-${profile.id}`)?.value || 8);
+    profile.shifts.noche = Number(document.getElementById(`noche-${profile.id}`)?.value || 8);
   });
 
+  normalizeState();
   saveState();
-  renderAll();
 
   if (typeof saveCloudData === "function") {
     saveCloudData();
   }
 
+  renderAllSafe();
+
   alert("Perfiles guardados");
 }
 
-function renderColors() {
+/* ==================================================
+   COLORES
+================================================== */
+
+function renderColors(){
   const box = document.getElementById("colorSettings");
   if (!box) return;
 
@@ -1237,29 +1361,35 @@ function renderColors() {
   });
 }
 
-function previewColor(catId, value) {
+function previewColor(catId, value){
   state.colors[catId] = value;
 
   const preview = document.getElementById(`preview-${catId}`);
   if (preview) preview.style.background = value;
 
   saveState();
+  scheduleCloudSave();
   renderCalendar();
   renderSummary();
 }
 
-function saveColors() {
+function saveColors(){
   categories.forEach(cat => {
     const picker = document.getElementById(`color-${cat.id}`);
     if (picker) state.colors[cat.id] = picker.value;
   });
 
   saveState();
-  renderAll();
+  scheduleCloudSave();
+  renderAllSafe();
   alert("Colores guardados");
 }
 
-function openEditModal(key) {
+/* ==================================================
+   MODAL
+================================================== */
+
+function openEditModal(key){
   editingDateKey = key;
 
   const modal = document.getElementById("editModal");
@@ -1290,14 +1420,14 @@ function openEditModal(key) {
 
   toggleModalHours();
 
-  modal.classList.add("active");
+  modal?.classList.add("active");
 }
 
-function closeEditModal() {
-  document.getElementById("editModal").classList.remove("active");
+function closeEditModal(){
+  document.getElementById("editModal")?.classList.remove("active");
 }
 
-function toggleModalHours() {
+function toggleModalHours(){
   const catId = document.getElementById("modalCategory")?.value;
   const cat = categories.find(c => c.id === catId);
 
@@ -1310,10 +1440,10 @@ function toggleModalHours() {
   if (timeRow) timeRow.style.display = catId === "evento" ? "block" : "none";
 }
 
-function saveEditModal() {
+function saveEditModal(){
   if (!editingDateKey) return;
 
-  const profileId = document.getElementById("modalProfile").value;
+  const profileId = document.getElementById("modalProfile")?.value;
   const profile = getProfile(profileId);
 
   if (!profile) {
@@ -1321,9 +1451,9 @@ function saveEditModal() {
     return;
   }
 
-  const catId = document.getElementById("modalCategory").value;
-  const note = document.getElementById("modalNote").value || "";
-  const hours = Number(document.getElementById("modalHours").value || 0);
+  const catId = document.getElementById("modalCategory")?.value;
+  const note = document.getElementById("modalNote")?.value || "";
+  const hours = Number(document.getElementById("modalHours")?.value || 0);
 
   profile.calendar ||= {};
   profile.notes ||= {};
@@ -1335,15 +1465,16 @@ function saveEditModal() {
   profile.notes[editingDateKey][catId] = { note, hours };
 
   saveState();
+  scheduleCloudSave();
   closeEditModal();
-  renderAll();
+  renderAllSafe();
 }
 
-function deleteModalEntry() {
+function deleteModalEntry(){
   if (!editingDateKey) return;
 
-  const profileId = document.getElementById("modalProfile").value;
-  const catId = document.getElementById("modalCategory").value;
+  const profileId = document.getElementById("modalProfile")?.value;
+  const catId = document.getElementById("modalCategory")?.value;
   const profile = getProfile(profileId);
 
   if (!profile) return;
@@ -1360,11 +1491,16 @@ function deleteModalEntry() {
   }
 
   saveState();
+  scheduleCloudSave();
   closeEditModal();
-  renderAll();
+  renderAllSafe();
 }
 
-function downloadFile(filename, content, type="text/plain") {
+/* ==================================================
+   EXPORTACIONES / BACKUP
+================================================== */
+
+function downloadFile(filename, content, type="text/plain"){
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
 
@@ -1376,7 +1512,7 @@ function downloadFile(filename, content, type="text/plain") {
   URL.revokeObjectURL(url);
 }
 
-function exportHistoryCSV() {
+function exportHistoryCSV(){
   const rows = ["Perfil,Fecha,Categoría,Horas,Observaciones"];
 
   getProfiles().forEach(profile => {
@@ -1388,7 +1524,7 @@ function exportHistoryCSV() {
   downloadFile(`historico_calendario_plm_${new Date().toISOString().slice(0,10)}.csv`, rows.join("\n"), "text/csv");
 }
 
-function exportExtrasCSV() {
+function exportExtrasCSV(){
   const rows = ["Perfil,Fecha,Horas,Observaciones"];
 
   getProfiles().forEach(profile => {
@@ -1400,7 +1536,7 @@ function exportExtrasCSV() {
   downloadFile(`horas_extra_plm_${new Date().toISOString().slice(0,10)}.csv`, rows.join("\n"), "text/csv");
 }
 
-function exportBackup() {
+function exportBackup(){
   downloadFile(
     `backup_calendario_plm_${new Date().toISOString().slice(0,10)}.json`,
     JSON.stringify(state, null, 2),
@@ -1408,7 +1544,7 @@ function exportBackup() {
   );
 }
 
-function importBackup(event) {
+function importBackup(event){
   const file = event.target.files[0];
   if (!file) return;
 
@@ -1423,9 +1559,13 @@ function importBackup(event) {
       }
 
       state = imported;
+      normalizeState();
       saveState();
-      renderAll();
+      scheduleCloudSave();
+      renderAllSafe();
+
       alert("Copia restaurada correctamente.");
+
     } catch (err) {
       alert("Error al importar copia de seguridad.");
     }
@@ -1434,95 +1574,19 @@ function importBackup(event) {
   reader.readAsText(file);
 }
 
-function exportPDF() {
+function exportPDF(){
   window.print();
 }
 
-function exportAnnualCalendarPDF() {
-  const year = Number(document.getElementById("calendarYearSelect")?.value || currentDate.getFullYear());
-
-  let html = `
-  <!DOCTYPE html>
-  <html lang="es">
-  <head>
-    <meta charset="UTF-8">
-    <title>Calendario Laboral ${year}</title>
-    <style>
-      body{font-family:Arial,sans-serif;margin:14px;color:#111827;}
-      h1{text-align:center;font-size:22px;margin:0 0 14px;}
-      .year-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-      .month{border:1px solid #d1d5db;border-radius:10px;padding:7px;page-break-inside:avoid;}
-      .month h2{text-align:center;font-size:13px;margin:0 0 6px;text-transform:capitalize;}
-      .weekdays,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
-      .weekday{font-size:7px;font-weight:bold;text-align:center;color:#6b7280;}
-      .day{min-height:30px;border:1px solid #e5e7eb;border-radius:5px;padding:2px;font-size:7px;overflow:hidden;}
-      .empty{border:none;}
-      .has{color:white;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-      .tag{display:block;font-size:6px;margin-top:1px;background:rgba(0,0,0,.25);color:white;border-radius:4px;padding:1px 2px;}
-      .legend{margin-top:12px;border-top:1px solid #d1d5db;padding-top:8px;}
-      .legend h3{text-align:center;font-size:11px;margin:0 0 6px;}
-      .legend-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 8px;font-size:7px;}
-      .legend-item{display:flex;align-items:center;gap:4px;}
-      .legend-color{width:9px;height:9px;border-radius:2px;border:1px solid #555;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-      @media print{@page{size:A4 portrait;margin:10mm;}}
-    </style>
-  </head>
-  <body>
-    <h1>Calendario Laboral ${year}</h1>
-    <div class="year-grid">
-  `;
-
-  for (let m = 0; m < 12; m++) {
-    html += `<div class="month"><h2>${monthNames[m]}</h2>`;
-    html += `<div class="weekdays">`;
-    weekDays.forEach(w => html += `<div class="weekday">${w}</div>`);
-    html += `</div><div class="days">`;
-
-    const first = new Date(year, m, 1);
-    const last = new Date(year, m + 1, 0);
-
-    let start = first.getDay();
-    start = start === 0 ? 6 : start - 1;
-
-    for (let i = 0; i < start; i++) html += `<div class="day empty"></div>`;
-
-    for (let d = 1; d <= last.getDate(); d++) {
-      const date = new Date(year, m, d);
-      const key = formatDate(date);
-      const assignments = getDayAssignments(key);
-      const background = buildDayBackground(assignments);
-
-      html += `<div class="day ${assignments.length ? "has" : ""}" style="${background ? `background:${background};` : ""}"><strong>${d}</strong>`;
-
-      assignments.slice(0, 2).forEach(item => {
-        html += `<span class="tag">${item.profile.name} · ${item.type === "event" ? "EV" : getCategoryTag(item.category)}</span>`;
-      });
-
-      html += `</div>`;
-    }
-
-    html += `</div></div>`;
-  }
-
-  html += `</div><div class="legend"><h3>Leyenda de colores</h3><div class="legend-grid">`;
-
-  categories.forEach(cat => {
-    html += `<div class="legend-item"><span class="legend-color" style="background:${getColor(cat.id)}"></span><span><strong>${cat.tag}</strong> ${cat.name}</span></div>`;
-  });
-
-  getProfiles().forEach(profile => {
-    html += `<div class="legend-item"><span class="legend-color" style="background:${profile.color}"></span><span>${profile.name}</span></div>`;
-  });
-
-  html += `</div></div><script>window.onload=function(){window.print();};</script></body></html>`;
-
-  const win = window.open("", "_blank");
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
+function exportAnnualCalendarPDF(){
+  window.print();
 }
 
-function requestNotificationPermission() {
+/* ==================================================
+   RECORDATORIOS
+================================================== */
+
+function requestNotificationPermission(){
   if (!("Notification" in window)) {
     alert("Tu dispositivo no soporta notificaciones.");
     return;
@@ -1537,10 +1601,10 @@ function requestNotificationPermission() {
   });
 }
 
-function saveReminder() {
-  const title = document.getElementById("reminderTitle").value.trim();
-  const body = document.getElementById("reminderBody").value.trim();
-  const date = document.getElementById("reminderDate").value;
+function saveReminder(){
+  const title = document.getElementById("reminderTitle")?.value.trim();
+  const body = document.getElementById("reminderBody")?.value.trim();
+  const date = document.getElementById("reminderDate")?.value;
 
   if (!title || !body || !date) {
     alert("Completa todos los campos del recordatorio.");
@@ -1558,6 +1622,7 @@ function saveReminder() {
   });
 
   saveState();
+  scheduleCloudSave();
 
   document.getElementById("reminderTitle").value = "";
   document.getElementById("reminderBody").value = "";
@@ -1567,7 +1632,7 @@ function saveReminder() {
   alert("Recordatorio guardado.");
 }
 
-function renderReminders() {
+function renderReminders(){
   const box = document.getElementById("reminderList");
   if (!box) return;
 
@@ -1589,13 +1654,18 @@ function renderReminders() {
     `).join("");
 }
 
-function deleteReminder(id) {
+function deleteReminder(id){
   state.reminders = state.reminders.filter(r => r.id !== id);
   saveState();
+  scheduleCloudSave();
   renderReminders();
 }
 
-function applyDarkMode() {
+/* ==================================================
+   MODO OSCURO / RESET
+================================================== */
+
+function applyDarkMode(){
   if (localStorage.getItem("plmDarkMode") === "true") {
     document.body.classList.add("dark");
   } else {
@@ -1603,47 +1673,21 @@ function applyDarkMode() {
   }
 }
 
-function toggleDarkMode() {
+function toggleDarkMode(){
   const enabled = document.body.classList.toggle("dark");
   localStorage.setItem("plmDarkMode", enabled ? "true" : "false");
 }
 
-function resetApp() {
+function resetApp(){
   if (confirm("¿Seguro que deseas borrar todos los datos?")) {
     localStorage.removeItem("laboralAppPLM");
+    localStorage.removeItem("plmSharedCalendarId");
     location.reload();
   }
 }
 
-function renderAll() {
-  renderYearSelectors();
-  renderProfileSelectors();
-  renderCategorySelect();
-  renderCalendar();
-  renderSummary();
-  renderCounters();
-  renderHistoryForm();
-  renderHistoryList();
-  renderExtraList();
-  renderProfileSettings();
-  renderColors();
-  renderReminders();
-  applyDarkMode();
-}
-
-document.addEventListener("DOMContentLoaded", renderAll);
-
-window.addEventListener("load", () => {
-  applyDarkMode();
-
-  const splash = document.getElementById("splashScreen");
-
-  setTimeout(() => {
-    if (splash) splash.classList.add("hidden");
-  }, 1000);
-});
 /* ==================================================
-   FIREBASE CLOUD SYNC - CALENDARIO COMPARTIDO
+   FIREBASE CLOUD SYNC - COMPARTIDO REALTIME
 ================================================== */
 
 function getSharedCalendarId(){
@@ -1679,9 +1723,8 @@ function getCloudDocRef(){
 }
 
 async function saveCloudData(){
-  if(isApplyingCloudData) return;
-
   try{
+    if(isApplyingCloudData) return;
     if(!window.firebaseDB) return;
 
     const ref = getCloudDocRef();
@@ -1707,7 +1750,6 @@ async function saveCloudData(){
 }
 
 async function loadCloudData(){
-
   try{
     if(!window.firebaseDB) return;
 
@@ -1717,14 +1759,18 @@ async function loadCloudData(){
     const snap = await window.firebaseGetDoc(ref);
 
     if(snap.exists()){
-
       const data = snap.data();
 
       if(data.state){
         state = data.state;
+        normalizeState();
         saveState();
-        renderAll();
+        renderAllSafe();
         console.log("Datos cargados desde Firebase");
+      }
+
+      if(data.updatedAt){
+        lastCloudUpdatedAt = data.updatedAt;
       }
 
     }else{
@@ -1749,7 +1795,6 @@ function normalizeSharedId(value){
 }
 
 async function createSharedCalendar(){
-
   const input = document.getElementById("sharedCalendarInput");
 
   let id = normalizeSharedId(input?.value);
@@ -1764,13 +1809,13 @@ async function createSharedCalendar(){
 
   await saveCloudData();
 
-  renderSharedCalendarStatus();
   startRealtimeSync();
+  renderSharedCalendarStatus();
+
   alert("Calendario compartido creado/guardado.\n\nCódigo: " + id + "\n\nIntroduce este mismo código en el otro móvil.");
 }
 
 async function joinSharedCalendar(){
-
   const input = document.getElementById("sharedCalendarInput");
 
   const id = normalizeSharedId(input?.value);
@@ -1788,13 +1833,13 @@ async function joinSharedCalendar(){
 
   await loadCloudData();
 
-  renderSharedCalendarStatus();
   startRealtimeSync();
+  renderSharedCalendarStatus();
+
   alert("Te has unido al calendario compartido: " + id);
 }
 
 function renderSharedCalendarStatus(){
-
   const box = document.getElementById("sharedCalendarStatus");
   const input = document.getElementById("sharedCalendarInput");
 
@@ -1813,29 +1858,9 @@ function renderSharedCalendarStatus(){
   }
 }
 
-const firebaseWait = setInterval(() => {
-
-  if(window.firebaseUser && window.firebaseDB){
-    clearInterval(firebaseWait);
-    loadCloudData();
-  }
-
-}, 500);
-
-setInterval(() => {
-  saveCloudData();
-}, 15000);
-
-document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(renderSharedCalendarStatus, 800);
-});
-let cloudUnsubscribe = null;
-let lastCloudUpdatedAt = 0;
-let isApplyingCloudData = false;
-
 function startRealtimeSync(){
-
   if(!window.firebaseDB) return;
+  if(!window.firebaseOnSnapshot) return;
 
   const ref = getCloudDocRef();
   if(!ref) return;
@@ -1845,22 +1870,27 @@ function startRealtimeSync(){
   }
 
   cloudUnsubscribe = window.firebaseOnSnapshot(ref, (snap) => {
-
     if(!snap.exists()) return;
 
     const data = snap.data();
-
     if(!data.state) return;
 
     if(!data.updatedAt || data.updatedAt <= lastCloudUpdatedAt) return;
 
+    if(isEditingForm){
+      pendingCloudState = data;
+      console.log("Sincronización pausada: usuario editando formulario");
+      return;
+    }
+
     isApplyingCloudData = true;
 
     state = data.state;
+    normalizeState();
     lastCloudUpdatedAt = data.updatedAt;
 
     saveState();
-    renderAll();
+    renderAllSafe();
 
     isApplyingCloudData = false;
 
@@ -1870,7 +1900,73 @@ function startRealtimeSync(){
     console.error("Error escucha Firebase:", error);
   });
 }
+
+/* ==================================================
+   RENDER SEGURO
+================================================== */
+
+function renderAll(){
+  normalizeState();
+  renderYearSelectors();
+  renderProfileSelectors();
+  renderCategorySelect();
+  renderCalendar();
+  renderSummary();
+  renderCounters();
+  renderHistoryForm();
+  renderHistoryList();
+  renderExtraList();
+  renderProfileSettings();
+  renderColors();
+  renderReminders();
+  renderSharedCalendarStatus();
+  applyDarkMode();
+}
+
+function renderAllSafe(){
+  if(isEditingForm) return;
+  renderAll();
+}
+
+/* ==================================================
+   CONTROL EDICIÓN FORMULARIOS
+================================================== */
+
+document.addEventListener("focusin", (e) => {
+  if (e.target.matches("input, textarea, select")) {
+    isEditingForm = true;
+  }
+});
+
+document.addEventListener("focusout", () => {
+  setTimeout(() => {
+    isEditingForm = false;
+
+    if(pendingCloudState && pendingCloudState.state){
+      state = pendingCloudState.state;
+      normalizeState();
+      lastCloudUpdatedAt = pendingCloudState.updatedAt || lastCloudUpdatedAt;
+      pendingCloudState = null;
+      saveState();
+      renderAll();
+      console.log("Sincronización pendiente aplicada");
+    }
+
+  }, 900);
+});
+
+/* ==================================================
+   INICIO APP
+================================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+  renderAll();
+  setTimeout(renderSharedCalendarStatus, 800);
+});
+
 window.addEventListener("load", () => {
+  applyDarkMode();
+
   const splash = document.getElementById("splashScreen");
 
   setTimeout(() => {
@@ -1882,3 +1978,14 @@ setTimeout(() => {
   const splash = document.getElementById("splashScreen");
   if (splash) splash.classList.add("hidden");
 }, 3000);
+
+const firebaseWait = setInterval(() => {
+  if(window.firebaseUser && window.firebaseDB){
+    clearInterval(firebaseWait);
+    loadCloudData();
+  }
+}, 500);
+
+setInterval(() => {
+  saveCloudData();
+}, 15000);
