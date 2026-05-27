@@ -1753,3 +1753,187 @@ button.secondary.full:active{
   content:none!important;
   display:none!important;
 }
+/* ==================================================
+   MICRO UX PREMIUM
+================================================== */
+
+/* Transiciones globales suaves */
+.tab,
+.card,
+.day,
+.compact-summary-card,
+.profile-dashboard-card,
+.list-item,
+.counter-row,
+.color-row,
+button,
+select,
+input,
+textarea{
+  transition:
+    background .22s cubic-bezier(.4,0,.2,1),
+    color .22s cubic-bezier(.4,0,.2,1),
+    border-color .22s cubic-bezier(.4,0,.2,1),
+    transform .18s cubic-bezier(.4,0,.2,1),
+    opacity .18s cubic-bezier(.4,0,.2,1);
+}
+
+/* Entrada más elegante de pestañas */
+.tab.active{
+  animation:premiumTabIn .28s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes premiumTabIn{
+  from{
+    opacity:0;
+    transform:translateY(10px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+/* Pulsación táctil natural */
+button:active,
+.nav-btn:active,
+.day:active,
+.compact-summary-card:active,
+.list-item:active{
+  transform:scale(.985);
+}
+
+/* Navegación más viva */
+.corporate-nav .nav-btn{
+  opacity:.62;
+}
+
+.corporate-nav .nav-btn.active{
+  opacity:1;
+}
+
+.corporate-nav .nav-btn:active{
+  opacity:1;
+}
+
+/* Scroll más app nativa */
+html,
+body{
+  scroll-behavior:smooth;
+  overscroll-behavior:none;
+  overflow-x:hidden;
+}
+
+body{
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Evitar selección accidental */
+body{
+  -webkit-user-select:none;
+  user-select:none;
+}
+
+input,
+textarea,
+select{
+  -webkit-user-select:text;
+  user-select:text;
+}
+
+/* Evitar highlight azul */
+*{
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* Evitar zoom por inputs */
+input,
+select,
+textarea{
+  font-size:16px!important;
+}
+
+/* Hover en pantallas grandes */
+@media(hover:hover){
+  .day:hover,
+  .compact-summary-card:hover,
+  .profile-dashboard-card:hover{
+    transform:translateY(-1px);
+  }
+
+  .nav-btn:hover{
+    opacity:1;
+  }
+}
+
+/* Mejora de foco accesible */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible{
+  outline:1px solid var(--text);
+  outline-offset:3px;
+}
+
+/* Nav con sensación premium */
+.corporate-nav{
+  transition:
+    background .25s cubic-bezier(.4,0,.2,1),
+    border-color .25s cubic-bezier(.4,0,.2,1);
+}
+
+.corporate-nav .nav-btn.active::after{
+  animation:navLineIn .22s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes navLineIn{
+  from{
+    width:0;
+    opacity:0;
+  }
+
+  to{
+    width:22px;
+    opacity:1;
+  }
+}
+
+/* Calendario más fluido */
+#calendario .day{
+  cursor:pointer;
+}
+
+#calendario .profile-shift{
+  animation:chipIn .18s ease;
+}
+
+@keyframes chipIn{
+  from{
+    opacity:0;
+    transform:translateY(2px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+/* Sensación de panel corporativo */
+.corporate-page-header,
+.corporate-hero{
+  animation:headerIn .32s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes headerIn{
+  from{
+    opacity:0;
+    transform:translateY(8px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
