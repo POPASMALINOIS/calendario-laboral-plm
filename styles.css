@@ -1008,3 +1008,201 @@ body.dark .bottom-nav{
     font-size:18px;
   }
 }
+/* ==================================================
+   V4 CALENDARIO EDITORIAL CORPORATIVO
+================================================== */
+
+#calendario .calendar-card{
+  background:transparent;
+  border:none;
+  border-radius:0;
+  padding:0;
+  margin-top:18px;
+}
+
+#calendario .view-switch{
+  display:flex;
+  gap:34px;
+  border-bottom:1px solid var(--border);
+  margin:0 0 22px;
+  padding-bottom:0;
+}
+
+#calendario .view-switch button{
+  background:transparent;
+  border:none;
+  color:var(--muted);
+  border-radius:0;
+  padding:0 0 12px;
+  font-size:13px;
+  font-weight:500;
+}
+
+#calendario .view-switch button.active{
+  background:transparent;
+  color:var(--text);
+  border-bottom:2px solid var(--text);
+}
+
+#calendario .toolbar{
+  grid-template-columns:40px 1fr 40px;
+  margin-bottom:20px;
+}
+
+#calendario .toolbar button{
+  background:transparent;
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:10px;
+  font-size:22px;
+  padding:7px 0;
+}
+
+#calendario .calendar-title{
+  font-size:26px;
+  font-weight:500;
+  letter-spacing:-1px;
+}
+
+#calendario .weekdays{
+  border-bottom:1px solid var(--border);
+  padding-bottom:10px;
+  margin-bottom:0;
+}
+
+#calendario .weekday{
+  font-size:10px;
+  font-weight:700;
+  color:var(--muted);
+  letter-spacing:.8px;
+}
+
+#calendario .calendar-grid{
+  gap:0;
+  border-left:1px solid var(--border);
+  border-top:1px solid var(--border);
+}
+
+#calendario .day{
+  min-height:86px;
+  border-radius:0;
+  border:none;
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:transparent;
+  padding:8px 6px;
+  box-shadow:none;
+}
+
+#calendario .day.empty{
+  opacity:1;
+  background:rgba(0,0,0,.015);
+}
+
+body.dark #calendario .day.empty{
+  background:rgba(255,255,255,.025);
+}
+
+#calendario .day.today{
+  outline:2px solid var(--text);
+  outline-offset:-2px;
+}
+
+#calendario .day-number{
+  font-size:13px;
+  font-weight:500;
+  margin-bottom:10px;
+}
+
+#calendario .holiday-label{
+  font-size:7px;
+  font-weight:600;
+  color:var(--danger);
+  line-height:1.1;
+}
+
+#calendario .day.has-soft{
+  background:transparent;
+  border-color:var(--border);
+}
+
+#calendario .day-side-bars{
+  top:34px;
+  left:8px;
+  bottom:auto;
+  width:2px;
+  height:28px;
+  border-radius:0;
+}
+
+#calendario .day.has-soft .day-number,
+#calendario .day.has-soft .holiday-label{
+  margin-left:0;
+}
+
+#calendario .profile-shift{
+  position:relative;
+  top:auto!important;
+  right:auto;
+  width:auto;
+  max-width:100%;
+  height:auto;
+  min-height:18px;
+  margin:0 0 4px 7px;
+  padding:0 0 0 7px;
+  border-radius:0;
+  background:transparent!important;
+  color:var(--text);
+  justify-content:flex-start;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:0;
+  box-shadow:none;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+#calendario .profile-shift::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:3px;
+  bottom:3px;
+  width:2px;
+  background:currentColor;
+}
+
+#calendario .more-chip{
+  color:var(--muted)!important;
+}
+
+/* Mobile: calendario editorial más compacto */
+@media(max-width:430px){
+  #calendario .calendar-title{
+    font-size:22px;
+  }
+
+  #calendario .view-switch{
+    gap:26px;
+  }
+
+  #calendario .calendar-grid{
+    font-size:12px;
+  }
+
+  #calendario .day{
+    min-height:72px;
+    padding:7px 4px;
+  }
+
+  #calendario .profile-shift{
+    font-size:9px;
+    margin-left:6px;
+    padding-left:6px;
+  }
+
+  #calendario .day-side-bars{
+    display:none;
+  }
+}
