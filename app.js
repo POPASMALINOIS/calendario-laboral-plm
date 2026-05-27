@@ -149,7 +149,7 @@ function getEditableProfile(){
 function setActiveProfile(id){
   state.activeProfile = id;
   saveState();
-  renderAllSafe();
+  renderAll();
   scheduleCloudSave();
 }
 
@@ -243,7 +243,6 @@ function renderProfileSelectors(){
     const el = document.getElementById(id);
     if (!el) return;
 
-    const previous = el.value || state.activeProfile;
     el.innerHTML = "";
 
     const all = document.createElement("option");
@@ -258,9 +257,7 @@ function renderProfileSelectors(){
       el.appendChild(opt);
     });
 
-    el.value = getProfile(previous) || previous === "all"
-      ? previous
-      : state.activeProfile;
+    el.value = state.activeProfile;
   });
 }
 
