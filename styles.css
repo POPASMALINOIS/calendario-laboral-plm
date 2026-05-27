@@ -1937,3 +1937,235 @@ textarea:focus-visible{
     transform:translateY(0);
   }
 }
+/* ==================================================
+   PULIDO VISUAL FINAL PREMIUM
+================================================== */
+
+/* Ritmo general */
+main{
+  max-width:920px;
+  margin:0 auto;
+}
+
+/* Mejor lectura en móviles */
+@media(max-width:430px){
+  main{
+    max-width:none;
+  }
+}
+
+/* Cabeceras más limpias */
+.corporate-page-header,
+.corporate-hero{
+  padding-top:14px;
+  margin-bottom:28px;
+}
+
+.brand-kicker{
+  font-size:11px;
+  letter-spacing:2px;
+}
+
+.brand-title{
+  font-size:48px;
+  letter-spacing:-2.6px;
+}
+
+.brand-subtitle{
+  font-size:13px;
+}
+
+/* Filtros más integrados */
+.editorial-filters,
+.dashboard-filters,
+.calendar-topbar{
+  gap:14px;
+}
+
+.editorial-filters select,
+.dashboard-filters select,
+.calendar-topbar select{
+  color:var(--text);
+  font-weight:500;
+}
+
+/* Separación más editorial */
+.editorial-section-title,
+.section-heading{
+  margin-top:34px;
+  margin-bottom:16px;
+}
+
+/* Dashboard más sobrio */
+.profile-dashboard-card{
+  padding-bottom:26px;
+}
+
+.profile-total-hours{
+  min-width:110px;
+  text-align:right;
+}
+
+.hours-mini-grid{
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding-bottom:14px;
+}
+
+.mini-hour-card{
+  min-height:58px;
+}
+
+/* Lista de permisos más tipo intranet */
+.editorial-list-grid .compact-summary-card{
+  padding:18px 0;
+}
+
+.editorial-list-grid .compact-summary-card:first-of-type{
+  border-top:1px solid var(--border);
+}
+
+.editorial-list-grid .compact-tag{
+  max-width:190px;
+}
+
+.editorial-list-grid .compact-value{
+  font-size:32px;
+}
+
+/* Calendario más equilibrado */
+#calendario .calendar-title{
+  font-size:28px;
+}
+
+#calendario .weekday{
+  padding-top:4px;
+  padding-bottom:9px;
+}
+
+#calendario .day{
+  min-height:90px;
+}
+
+#calendario .day-number{
+  font-size:12px;
+  color:var(--muted);
+}
+
+#calendario .day.today .day-number{
+  color:var(--text);
+  font-weight:700;
+}
+
+#calendario .profile-shift{
+  font-size:10px;
+  font-weight:600;
+}
+
+#calendario .day-side-bars{
+  opacity:.95;
+}
+
+/* Formularios más finos */
+input,
+select,
+textarea{
+  min-height:44px;
+}
+
+textarea{
+  resize:vertical;
+  min-height:86px;
+}
+
+/* Listas más limpias */
+.list-item{
+  padding:18px 0;
+}
+
+.list-item strong{
+  display:block;
+  margin-bottom:4px;
+}
+
+/* Botones menos pesados */
+button{
+  min-height:42px;
+}
+
+button.full{
+  min-height:48px;
+}
+
+/* Bottom nav más precisa */
+.corporate-nav{
+  height:74px;
+}
+
+.corporate-nav .nav-btn{
+  padding-top:6px;
+}
+
+.corporate-nav .nav-btn span{
+  margin-bottom:2px;
+}
+
+/* Modo oscuro más elegante */
+body.dark .day,
+body.dark .card,
+body.dark .compact-summary-card,
+body.dark .profile-dashboard-card,
+body.dark .year-month,
+body.dark .modal{
+  background:#0d0d0d;
+}
+
+body.dark input,
+body.dark select,
+body.dark textarea{
+  background:transparent;
+}
+
+/* Móvil: ajuste fino */
+@media(max-width:430px){
+
+  .brand-title{
+    font-size:42px;
+  }
+
+  .corporate-page-header .page-title{
+    font-size:32px;
+  }
+
+  .profile-dashboard-name{
+    font-size:24px;
+  }
+
+  .profile-total-hours{
+    font-size:42px;
+  }
+
+  .editorial-list-grid .compact-value{
+    font-size:28px;
+  }
+
+  #calendario .calendar-title{
+    font-size:24px;
+  }
+
+  #calendario .day{
+    min-height:78px;
+  }
+
+  #calendario .profile-shift{
+    font-size:9px;
+  }
+
+  .corporate-nav .nav-btn{
+    font-size:8px;
+  }
+
+  .corporate-nav .nav-btn span{
+    font-size:9px;
+  }
+}
