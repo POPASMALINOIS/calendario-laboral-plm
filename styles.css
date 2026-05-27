@@ -1460,3 +1460,268 @@ html,
 body{
   overflow-x:hidden;
 }
+/* ==================================================
+   V4 REFINAMIENTO CORPORATIVO FINAL
+================================================== */
+
+/* Cabeceras de pestañas secundarias */
+
+#calendario::before,
+#contadores::before,
+#historico::before,
+#horas::before,
+#ajustes::before{
+  display:block;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1.8px;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:8px 0 8px;
+}
+
+#calendario::before{
+  content:"PLANIFICACIÓN";
+}
+
+#contadores::before{
+  content:"CONTROL ANUAL";
+}
+
+#historico::before{
+  content:"REGISTROS";
+}
+
+#horas::before{
+  content:"HORAS EXTRA";
+}
+
+#ajustes::before{
+  content:"CONFIGURACIÓN";
+}
+
+/* Títulos más editoriales en pestañas */
+
+#contadores .page-title,
+#historico .page-title,
+#horas .page-title,
+#ajustes .page-title{
+  font-size:34px;
+  font-weight:500;
+  letter-spacing:-1.4px;
+  margin-bottom:24px;
+}
+
+/* Filtros más planos */
+
+.dashboard-filters,
+.calendar-topbar{
+  border-bottom:1px solid var(--border);
+  padding-bottom:16px;
+  margin-bottom:24px;
+}
+
+.calendar-topbar select,
+.dashboard-filters select{
+  border:none;
+  border-radius:0;
+  border-bottom:1px solid var(--border);
+  background:transparent;
+  padding-left:0;
+  padding-right:0;
+}
+
+/* Formularios sin apariencia de tarjeta */
+
+.form-row{
+  margin-bottom:20px;
+}
+
+.form-row label{
+  margin-bottom:8px;
+}
+
+input,
+select,
+textarea{
+  border-radius:0;
+  border:none;
+  border-bottom:1px solid var(--border);
+  background:transparent;
+  padding:12px 0;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  box-shadow:none;
+  border-bottom-color:var(--text);
+}
+
+/* Botones editoriales */
+
+button.full,
+button.secondary.full{
+  border-radius:0;
+  border:none;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  text-transform:uppercase;
+  letter-spacing:1px;
+  font-size:12px;
+}
+
+button.full:active,
+button.secondary.full:active{
+  background:var(--primary-soft);
+}
+
+/* Ajustes: secciones tipo listado corporativo */
+
+#ajustes .card h3,
+#historico .card h3,
+#horas .card h3,
+#contadores .card h3{
+  font-size:18px;
+  font-weight:500;
+  letter-spacing:-.4px;
+  margin:0 0 18px;
+}
+
+/* Histórico y horas como listado fino */
+
+.list-item strong{
+  font-size:15px;
+  font-weight:500;
+}
+
+.list-item div{
+  font-size:13px;
+  line-height:1.45;
+}
+
+.list-item button{
+  border-radius:0;
+  padding:9px 12px;
+  font-size:11px;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+}
+
+/* Color settings más limpio */
+
+.color-row{
+  grid-template-columns:1fr auto;
+  padding:16px 0;
+}
+
+.color-row strong{
+  font-size:15px;
+  font-weight:500;
+}
+
+.color-preview{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+}
+
+.color-edit-btn{
+  border-radius:0;
+  background:transparent;
+  border:none;
+  border-bottom:1px solid var(--border);
+  padding:8px 0;
+  font-size:11px;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+}
+
+/* Perfil y jornada más corporativo */
+
+.profile-config-card{
+  padding:22px 0;
+}
+
+.profile-settings-title{
+  font-size:20px;
+  font-weight:500;
+  letter-spacing:-.5px;
+}
+
+.shift-config-grid input{
+  text-align:center;
+}
+
+/* Contadores mucho más premium */
+
+.counter-row{
+  grid-template-columns:1fr auto;
+  padding:20px 0;
+}
+
+.counter-row strong{
+  font-size:17px;
+  font-weight:500;
+}
+
+.counter-row .small{
+  margin-top:5px;
+}
+
+.counter-btn{
+  border-radius:50%;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+}
+
+.counter-btn:active{
+  background:var(--primary-soft);
+}
+
+/* Modal más editorial */
+
+.modal{
+  border-radius:0;
+  border:none;
+  border-top:1px solid var(--border);
+  padding:24px 20px 28px;
+}
+
+.modal h3{
+  font-size:26px;
+  font-weight:500;
+  letter-spacing:-1px;
+}
+
+.modal-actions button{
+  border-radius:0;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+}
+
+/* Navegación inferior más tipo Zara */
+
+.corporate-nav{
+  height:72px;
+}
+
+.corporate-nav .nav-btn{
+  gap:2px;
+}
+
+.corporate-nav .nav-btn span{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1px;
+}
+
+.corporate-nav .nav-btn.active::after{
+  width:22px;
+  height:1px;
+  margin-top:4px;
+}
