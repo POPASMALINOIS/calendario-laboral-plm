@@ -1674,6 +1674,7 @@ function getCloudDocRef(){
 }
 
 async function saveCloudData(){
+  if(isApplyingCloudData) return;
 
   try{
     if(!window.firebaseDB) return;
@@ -1686,6 +1687,8 @@ async function saveCloudData(){
       sharedCalendarId: getSharedCalendarId() || null,
       updatedAt: Date.now()
     };
+
+    lastCloudUpdatedAt = payload.updatedAt;
 
     await window.firebaseSetDoc(ref, payload);
 
@@ -1725,6 +1728,7 @@ async function loadCloudData(){
     }
 
     renderSharedCalendarStatus();
+    startRealtimeSync();
 
   }catch(error){
     console.error("Error cargando Firebase:", error);
@@ -1756,7 +1760,7 @@ async function createSharedCalendar(){
   await saveCloudData();
 
   renderSharedCalendarStatus();
-
+  startRealtimeSync();
   alert("Calendario compartido creado/guardado.\n\nCódigo: " + id + "\n\nIntroduce este mismo código en el otro móvil.");
 }
 
@@ -1780,7 +1784,7 @@ async function joinSharedCalendar(){
   await loadCloudData();
 
   renderSharedCalendarStatus();
-
+  startRealtimeSync();
   alert("Te has unido al calendario compartido: " + id);
 }
 
@@ -1820,3 +1824,44 @@ setInterval(() => {
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(renderSharedCalendarStatus, 800);
 });
+let cloudUnsubscribe = null;
+let lastCloudUpdatedAt = 0;
+let isApplyingCloudData = false;
+
+function startRealtimeSync(){
+
+  if(!window.firebaseDB) return;
+
+  const ref = getCloudDocRef();
+  if(!ref) return;
+
+  if(cloudUnsubscribe){
+    cloudUnsubscribe();
+  }
+
+  cloudUnsubscribe = window.firebaseOnSnapshot(ref, (snap) => {
+
+    if(!snap.exists()) return;
+
+    const data = snap.data();
+
+    if(!data.state) return;
+
+    if(!data.updatedAt || data.updatedAt <= lastCloudUpdatedAt) return;
+
+    isApplyingCloudData = true;
+
+    state = data.state;
+    lastCloudUpdatedAt = data.updatedAt;
+
+    saveState();
+    renderAll();
+
+    isApplyingCloudData = false;
+
+    console.log("Sincronización recibida en tiempo real");
+
+  }, (error) => {
+    console.error("Error escucha Firebase:", error);
+  });
+}
