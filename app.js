@@ -1638,32 +1638,60 @@ window.addEventListener("load", () => {
   }, 1000);
 });
 /* ==================================================
-   FIREBASE CLOUD SYNC - STATE ACTUAL
+   FIREBASE CLOUD SYNC - CALENDARIO COMPARTIDO
 ================================================== */
+
+function getSharedCalendarId(){
+  return localStorage.getItem("plmSharedCalendarId") || "";
+}
+
+function setSharedCalendarId(id){
+  localStorage.setItem("plmSharedCalendarId", id);
+}
+
+function getCloudDocRef(){
+  if(!window.firebaseDB) return null;
+
+  const sharedId = getSharedCalendarId();
+
+  if(sharedId){
+    return window.firebaseDoc(
+      window.firebaseDB,
+      "sharedCalendars",
+      sharedId
+    );
+  }
+
+  if(window.firebaseUser){
+    return window.firebaseDoc(
+      window.firebaseDB,
+      "calendarUsers",
+      window.firebaseUser.uid
+    );
+  }
+
+  return null;
+}
 
 async function saveCloudData(){
 
   try{
-    if(!window.firebaseUser) return;
     if(!window.firebaseDB) return;
 
-    const uid = window.firebaseUser.uid;
+    const ref = getCloudDocRef();
+    if(!ref) return;
 
     const payload = {
       state: state,
+      sharedCalendarId: getSharedCalendarId() || null,
       updatedAt: Date.now()
     };
 
-    await window.firebaseSetDoc(
-      window.firebaseDoc(
-        window.firebaseDB,
-        "calendarUsers",
-        uid
-      ),
-      payload
-    );
+    await window.firebaseSetDoc(ref, payload);
 
     console.log("Datos sincronizados en Firebase");
+
+    renderSharedCalendarStatus();
 
   }catch(error){
     console.error("Error guardando en Firebase:", error);
@@ -1673,18 +1701,12 @@ async function saveCloudData(){
 async function loadCloudData(){
 
   try{
-    if(!window.firebaseUser) return;
     if(!window.firebaseDB) return;
 
-    const uid = window.firebaseUser.uid;
+    const ref = getCloudDocRef();
+    if(!ref) return;
 
-    const snap = await window.firebaseGetDoc(
-      window.firebaseDoc(
-        window.firebaseDB,
-        "calendarUsers",
-        uid
-      )
-    );
+    const snap = await window.firebaseGetDoc(ref);
 
     if(snap.exists()){
 
@@ -1702,8 +1724,83 @@ async function loadCloudData(){
       await saveCloudData();
     }
 
+    renderSharedCalendarStatus();
+
   }catch(error){
     console.error("Error cargando Firebase:", error);
+  }
+}
+
+function normalizeSharedId(value){
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g,"-")
+    .replace(/[^A-Z0-9-_]/g,"");
+}
+
+async function createSharedCalendar(){
+
+  const input = document.getElementById("sharedCalendarInput");
+
+  let id = normalizeSharedId(input?.value);
+
+  if(!id){
+    id = "PLM-" + Math.random().toString(36).substring(2,8).toUpperCase();
+  }
+
+  setSharedCalendarId(id);
+
+  if(input) input.value = id;
+
+  await saveCloudData();
+
+  renderSharedCalendarStatus();
+
+  alert("Calendario compartido creado/guardado.\n\nCódigo: " + id + "\n\nIntroduce este mismo código en el otro móvil.");
+}
+
+async function joinSharedCalendar(){
+
+  const input = document.getElementById("sharedCalendarInput");
+
+  const id = normalizeSharedId(input?.value);
+
+  if(!id){
+    alert("Introduce un código de calendario compartido.");
+    return;
+  }
+
+  if(!confirm("Al unirte, este dispositivo cargará los datos del calendario compartido si existen. ¿Continuar?")){
+    return;
+  }
+
+  setSharedCalendarId(id);
+
+  await loadCloudData();
+
+  renderSharedCalendarStatus();
+
+  alert("Te has unido al calendario compartido: " + id);
+}
+
+function renderSharedCalendarStatus(){
+
+  const box = document.getElementById("sharedCalendarStatus");
+  const input = document.getElementById("sharedCalendarInput");
+
+  if(!box) return;
+
+  const id = getSharedCalendarId();
+
+  if(input && id){
+    input.value = id;
+  }
+
+  if(id){
+    box.innerHTML = `<br>Calendario compartido activo: <strong>${id}</strong>`;
+  }else{
+    box.innerHTML = `<br>Sin calendario compartido activo. Este dispositivo usa sincronización individual.`;
   }
 }
 
@@ -1719,3 +1816,7 @@ const firebaseWait = setInterval(() => {
 setInterval(() => {
   saveCloudData();
 }, 15000);
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(renderSharedCalendarStatus, 800);
+});
