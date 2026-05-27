@@ -1725,3 +1725,31 @@ button.secondary.full:active{
   height:1px;
   margin-top:4px;
 }
+/* ==================================================
+   V4 CABECERAS CORPORATIVAS
+================================================== */
+
+.corporate-page-header{
+  padding:8px 0 24px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:22px;
+}
+
+.corporate-page-header .brand-kicker{
+  margin-bottom:8px;
+}
+
+.corporate-page-header .page-title{
+  margin:0;
+}
+
+/* quitamos duplicados de pseudo-cabeceras anteriores */
+
+#calendario::before,
+#contadores::before,
+#historico::before,
+#horas::before,
+#ajustes::before{
+  content:none!important;
+  display:none!important;
+}
