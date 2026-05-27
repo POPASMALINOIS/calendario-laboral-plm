@@ -1637,3 +1637,123 @@ window.addEventListener("load", () => {
     if (splash) splash.classList.add("hidden");
   }, 1000);
 });
+/* ==================================================
+   FIREBASE CLOUD SYNC
+================================================== */
+
+async function saveCloudData(){
+
+  try{
+
+    if(!window.firebaseUser) return;
+
+    const uid = window.firebaseUser.uid;
+
+    const payload = {
+
+      profiles,
+      calendarData,
+      counters,
+      historyData,
+      extraHours,
+
+      updatedAt: Date.now()
+
+    };
+
+    await firebaseSetDoc(
+
+      firebaseDoc(
+        firebaseDB,
+        "calendarUsers",
+        uid
+      ),
+
+      payload
+
+    );
+
+    console.log("Datos sincronizados en nube");
+
+  }
+  catch(error){
+
+    console.error("Error guardando nube:", error);
+
+  }
+
+}
+
+async function loadCloudData(){
+
+  try{
+
+    if(!window.firebaseUser) return;
+
+    const uid = window.firebaseUser.uid;
+
+    const snap = await firebaseGetDoc(
+
+      firebaseDoc(
+        firebaseDB,
+        "calendarUsers",
+        uid
+      )
+
+    );
+
+    if(snap.exists()){
+
+      const data = snap.data();
+
+      if(data.profiles) profiles = data.profiles;
+      if(data.calendarData) calendarData = data.calendarData;
+      if(data.counters) counters = data.counters;
+      if(data.historyData) historyData = data.historyData;
+      if(data.extraHours) extraHours = data.extraHours;
+
+      saveData();
+
+      renderAll();
+
+      console.log("Datos cargados desde nube");
+
+    }
+    else{
+
+      console.log("Primer inicio nube");
+
+      saveCloudData();
+
+    }
+
+  }
+  catch(error){
+
+    console.error("Error cargando nube:", error);
+
+  }
+
+}
+
+/* Esperar login Firebase */
+
+const firebaseWait = setInterval(()=>{
+
+  if(window.firebaseUser){
+
+    clearInterval(firebaseWait);
+
+    loadCloudData();
+
+  }
+
+},500);
+
+/* Guardado automático nube */
+
+setInterval(()=>{
+
+  saveCloudData();
+
+},15000);
