@@ -805,104 +805,99 @@ function calculateUsed(profile, catId, year) {
 }
 
 function renderSummary() {
+  const panel = document.getElementById("profileSummaryPanel");
+  const grid = document.getElementById("summaryGrid");
 
-  const container = document.getElementById("summaryGrid");
-  if (!container) return;
+  if (!panel || !grid) return;
+
+  panel.innerHTML = "";
+  grid.innerHTML = "";
 
   const profiles = state.activeProfile === "all"
     ? getProfiles()
     : activeProfiles();
 
-  const cards = [];
-
   profiles.forEach(profile => {
+    const hours = calculateProfileHours(profile, summaryYear);
 
-    const stats = calculateProfileStats(profile);
+    panel.innerHTML += `
+      <div class="profile-dashboard-card">
+        <div class="profile-dashboard-top">
+          <div class="profile-dashboard-user">
+            <span class="profile-large-dot" style="background:${profile.color}"></span>
+            <div>
+              <div class="profile-dashboard-name">${profile.name}</div>
+              <div class="profile-dashboard-type">
+                ${profile.reduced ? "Jornada reducida" : "Jornada completa"}
+              </div>
+            </div>
+          </div>
 
-    cards.push(`
+          <div class="profile-total-hours">${formatAmount(hours.total)}h</div>
+        </div>
+
+        <div class="hours-mini-grid">
+          <div class="mini-hour-card">
+            <div class="mini-hour-label">Turno mañana</div>
+            <div class="mini-hour-value">${formatAmount(hours.manana)}h</div>
+          </div>
+
+          <div class="mini-hour-card">
+            <div class="mini-hour-label">Turno tarde</div>
+            <div class="mini-hour-value">${formatAmount(hours.tarde)}h</div>
+          </div>
+
+          <div class="mini-hour-card">
+            <div class="mini-hour-label">Turno noche</div>
+            <div class="mini-hour-value">${formatAmount(hours.noche)}h</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    grid.innerHTML += `
       <div class="compact-profile-group">
         <div class="compact-profile-title">
-          <span class="mini-color" style="background:${profile.color}"></span>
+          <span class="profile-large-dot" style="background:${profile.color}"></span>
           ${profile.name}
         </div>
       </div>
-    `);
-
-    cards.push(`
-      <div class="compact-summary-card">
-        <div class="compact-summary-top">
-          <span class="compact-tag">HORAS ANUALES</span>
-        </div>
-
-        <div class="compact-value">
-          ${formatAmount(stats.totalHours)}h
-        </div>
-
-        <div class="compact-label">
-          Total trabajado
-        </div>
-
-        <div class="compact-small">
-          Mañanas: ${formatAmount(stats.morningHours)}h ·
-          Tardes: ${formatAmount(stats.afternoonHours)}h ·
-          Noches: ${formatAmount(stats.nightHours)}h
-        </div>
-      </div>
-    `);
+    `;
 
     categories
-      .filter(c => c.type === "hours" || c.type === "mixed")
-      .forEach(category => {
+      .filter(c => c.countable)
+      .forEach(cat => {
+        const total = Number(profile.counters?.[summaryYear]?.[cat.id] || 0);
+        const used = calculateUsed(profile, cat.id, summaryYear);
+        const remaining = Math.max(total - used, 0);
+        const unit = cat.type === "hours" ? "h" : "d";
 
-        const used = stats.categoryHours?.[category.id] || 0;
-
-        const yearlyLimit =
-          Number(category.maxHours || category.limit || 0);
-
-        const remaining = Math.max(0, yearlyLimit - used);
-
-        const isDaysCategory =
-          category.id === "asuntos_propios";
-
-        cards.push(`
+        grid.innerHTML += `
           <div class="compact-summary-card">
-
             <div class="compact-summary-top">
-              <span class="compact-tag">
-                ${category.name.toUpperCase()}
-              </span>
+              <span class="mini-color" style="background:${getColor(cat.id)}"></span>
+              <span class="compact-tag">${cat.name}</span>
             </div>
 
             <div class="compact-value">
-              ${formatAmount(used)}
-              ${isDaysCategory ? "d" : "h"}
+              ${formatAmount(remaining)}${unit}
             </div>
 
             <div class="compact-label">
-              Usado
+              Restante
             </div>
 
             <div class="compact-small">
-              Restante:
-              ${formatAmount(remaining)}
-              ${isDaysCategory ? "d" : "h"}
+              Usado: ${formatAmount(used)}${unit}
             </div>
 
             <div class="compact-small">
-              Total anual:
-              ${formatAmount(yearlyLimit)}
-              ${isDaysCategory ? "d" : "h"}
+              Total anual: ${formatAmount(total)}${unit}
             </div>
-
           </div>
-        `);
-
+        `;
       });
-
   });
-
-  container.innerHTML = cards.join("");
-
 }
 
 function renderCounters() {
