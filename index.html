@@ -338,7 +338,8 @@ import {
   getFirestore,
   doc,
   setDoc,
-  getDoc
+  getDoc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
@@ -368,6 +369,7 @@ window.firebaseAuth = auth;
 window.firebaseDoc = doc;
 window.firebaseSetDoc = setDoc;
 window.firebaseGetDoc = getDoc;
+window.firebaseOnSnapshot = onSnapshot;  
 
 signInAnonymously(auth)
   .then(() => {
