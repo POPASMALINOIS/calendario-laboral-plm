@@ -671,6 +671,7 @@ function toggleDate(key) {
 
   profile.calendar ||= {};
   profile.notes ||= {};
+  profile.history ||= [];
 
   if (!profile.calendar[key]) profile.calendar[key] = [];
 
@@ -680,6 +681,10 @@ function toggleDate(key) {
     if (profile.notes[key]?.[selectedCategory]) {
       delete profile.notes[key][selectedCategory];
     }
+
+    profile.history = profile.history.filter(h => {
+      return !(h.source === "calendar" && h.date === key && h.category === selectedCategory);
+    });
 
     if (profile.notes[key] && !Object.keys(profile.notes[key]).length) {
       delete profile.notes[key];
@@ -698,11 +703,27 @@ function toggleDate(key) {
       const hours = prompt(msg, selectedCategory === "asuntos_propios" ? "4" : "");
 
       if (hours !== null && hours !== "") {
+        const parsedHours = Number(String(hours).replace(",", ".")) || 0;
+        const note = prompt("Observaciones:", "") || "";
+
         profile.notes[key] ||= {};
         profile.notes[key][selectedCategory] = {
-          hours: Number(String(hours).replace(",", ".")) || 0,
-          note: ""
+          hours: parsedHours,
+          note
         };
+
+        profile.history = profile.history.filter(h => {
+          return !(h.source === "calendar" && h.date === key && h.category === selectedCategory);
+        });
+
+        profile.history.unshift({
+          id: `calendar-${key}-${selectedCategory}`,
+          date: key,
+          category: selectedCategory,
+          hours: parsedHours,
+          note,
+          source: "calendar"
+        });
       }
     }
   }
@@ -712,6 +733,7 @@ function toggleDate(key) {
   saveState();
   renderCalendar();
   renderSummary();
+  renderHistoryList();
 }
 
 function calculateProfileHours(profile, year) {
@@ -1007,8 +1029,9 @@ function renderHistoryList() {
   box.innerHTML = rows.map(({profile,item}) => `
     <div class="list-item">
       <strong>${item.date}</strong>
-      <div>${profile.name} · ${getCategoryName(item.category)}${item.hours ? ` · ${item.hours} h` : ""}</div>
+      <div>${profile.name} · ${getCategoryName(item.category)}${item.hours ? ` · ${formatAmount(item.hours)} h` : ""}</div>
       <div class="small">${item.note || "Sin observaciones"}</div>
+      <div class="small">${item.source === "calendar" ? "Registro automático desde calendario" : "Registro manual"}</div>
       <br>
       <button class="danger" onclick="deleteHistoryItem('${profile.id}','${item.id}')">Eliminar</button>
     </div>
