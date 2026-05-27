@@ -1196,8 +1196,12 @@ function saveProfiles() {
 
   saveState();
   renderAll();
+
+  if (typeof saveCloudData === "function") {
+  saveCloudData();
+  }
+
   alert("Perfiles guardados");
-}
 
 function renderColors() {
   const box = document.getElementById("colorSettings");
