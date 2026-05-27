@@ -1198,10 +1198,11 @@ function saveProfiles() {
   renderAll();
 
   if (typeof saveCloudData === "function") {
-  saveCloudData();
+    saveCloudData();
   }
 
   alert("Perfiles guardados");
+}
 
 function renderColors() {
   const box = document.getElementById("colorSettings");
@@ -1869,3 +1870,15 @@ function startRealtimeSync(){
     console.error("Error escucha Firebase:", error);
   });
 }
+window.addEventListener("load", () => {
+  const splash = document.getElementById("splashScreen");
+
+  setTimeout(() => {
+    if (splash) splash.classList.add("hidden");
+  }, 1000);
+});
+
+setTimeout(() => {
+  const splash = document.getElementById("splashScreen");
+  if (splash) splash.classList.add("hidden");
+}, 3000);
