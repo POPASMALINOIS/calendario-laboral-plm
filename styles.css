@@ -1,25 +1,33 @@
 :root{
-  --bg:#f3f4f6;
+  --bg:#f7f7f5;
   --card:#ffffff;
-  --text:#111827;
-  --muted:#6b7280;
-  --border:#e5e7eb;
-  --primary:#2563eb;
-  --primary-soft:#dbeafe;
-  --danger:#ef4444;
-  --shadow:0 10px 30px rgba(15,23,42,.08);
-  --radius:24px;
+  --text:#111111;
+  --muted:#8b8b8b;
+  --border:#ececec;
+
+  --primary:#0f172a;
+  --primary-soft:#f1f5f9;
+
+  --danger:#dc2626;
+
+  --shadow:none;
+
+  --radius:18px;
+
+  --transition:.22s cubic-bezier(.4,0,.2,1);
 }
 
 body.dark{
-  --bg:#020617;
-  --card:#0f172a;
-  --text:#f8fafc;
-  --muted:#94a3b8;
-  --border:#1e293b;
-  --primary:#60a5fa;
-  --primary-soft:#1e3a8a;
-  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --bg:#050505;
+  --card:#111111;
+  --text:#f5f5f5;
+  --muted:#8f8f8f;
+  --border:#1f1f1f;
+
+  --primary:#ffffff;
+  --primary-soft:#181818;
+
+  --shadow:none;
 }
 
 *{
@@ -31,10 +39,14 @@ html,
 body{
   margin:0;
   padding:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:var(--bg);
   color:var(--text);
-  touch-action:manipulation;
+  transition:
+    background var(--transition),
+    color var(--transition);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
 }
 
 body{
@@ -157,7 +169,8 @@ main{
 .page-subtitle{
   color:var(--muted);
   font-size:14px;
-  margin-bottom:16px;
+  line-height:1.4;
+  margin-bottom:24px;
 }
 
 .section-heading{
@@ -171,11 +184,15 @@ main{
 
 .card{
   background:var(--card);
-  border-radius:var(--radius);
-  padding:16px;
+  border-radius:24px;
+  padding:20px;
   margin-bottom:14px;
-  box-shadow:var(--shadow);
-  border:1px solid rgba(255,255,255,.55);
+  border:1px solid var(--border);
+
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    transform var(--transition);
 }
 
 body.dark .card{
@@ -279,12 +296,20 @@ button.full{
 .calendar-topbar{
   position:sticky;
   top:0;
+
   z-index:50;
+
   display:grid;
-  grid-template-columns:82px 1fr 1fr;
-  gap:8px;
-  padding:10px 0 12px;
+  grid-template-columns:90px 1fr 1fr;
+
+  gap:10px;
+
+  padding:0 0 18px;
+
   background:var(--bg);
+
+  transition:
+    background var(--transition);
 }
 
 .calendar-topbar select,
@@ -296,7 +321,8 @@ button.full{
 }
 
 .calendar-card{
-  padding:14px;
+  padding:18px;
+  border-radius:28px;
 }
 
 /* DASHBOARD PERFIL */
@@ -411,11 +437,23 @@ body.dark .mini-hour-card{
 
 .compact-summary-card{
   background:var(--card);
-  border-radius:21px;
-  min-height:104px;
-  padding:12px;
-  box-shadow:var(--shadow);
-  border:1px solid rgba(255,255,255,.55);
+
+  border-radius:22px;
+
+  min-height:118px;
+
+  padding:18px;
+
+  border:1px solid var(--border);
+
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    transform var(--transition);
 }
 
 body.dark .compact-summary-card{
@@ -442,23 +480,24 @@ body.dark .compact-summary-card{
 }
 
 .compact-value{
-  font-size:27px;
-  font-weight:950;
-  margin-top:10px;
+  font-size:34px;
+  font-weight:700;
+  letter-spacing:-1.5px;
   line-height:1;
+  margin-top:10px;
 }
 
 .compact-label{
-  font-size:10.5px;
-  font-weight:850;
-  margin-top:7px;
-  line-height:1.15;
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted);
+  margin-top:8px;
 }
 
 .compact-small{
-  font-size:10px;
+  font-size:11px;
   color:var(--muted);
-  margin-top:4px;
+  line-height:1.4;
 }
 
 /* CALENDARIO */
@@ -471,10 +510,25 @@ body.dark .compact-summary-card{
 }
 
 .view-switch button{
-  background:#e5e7eb;
-  color:#111827;
+  background:transparent;
+  border:1px solid var(--border);
+
+  color:var(--muted);
+
   padding:10px 8px;
-  font-size:13px;
+
+  font-size:12px;
+  font-weight:600;
+
+  border-radius:14px;
+
+  transition:all var(--transition);
+}
+
+.view-switch button.active{
+  background:var(--text);
+  color:var(--bg);
+  border-color:var(--text);
 }
 
 body.dark .view-switch button{
@@ -523,14 +577,23 @@ body.dark .view-switch button{
 
 .day{
   min-height:88px;
-  border-radius:19px;
-  padding:6px;
-  background:#f9fafb;
+
+  border-radius:18px;
+
+  padding:8px;
+
+  background:var(--card);
+
   position:relative;
+
   overflow:hidden;
-  border:2px solid transparent;
-  box-shadow:0 4px 14px rgba(15,23,42,.05);
-  color:var(--text);
+
+  border:1px solid var(--border);
+
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    transform var(--transition);
 }
 
 body.dark .day{
@@ -543,16 +606,15 @@ body.dark .day{
 }
 
 .day.today{
-  border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(37,99,235,.16);
+  border-color:#1d4ed8;
 }
 
 .day-number{
   font-size:13px;
-  font-weight:950;
+  font-weight:700;
   position:relative;
   z-index:2;
-  margin-bottom:4px;
+  margin-bottom:8px;
 }
 
 .day-number.holiday{
@@ -608,22 +670,30 @@ body.dark .day{
 
 .profile-shift{
   position:absolute;
-  right:4px;
-  top:30px;
-  width:30px;
+
+  right:6px;
+
+  width:32px;
   height:18px;
-  border-radius:6px;
+
+  border-radius:5px;
+
   display:flex;
   align-items:center;
   justify-content:center;
+
   color:white;
+
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
+
   letter-spacing:.2px;
-  box-shadow:0 2px 6px rgba(0,0,0,.12);
+
   overflow:hidden;
-  white-space:nowrap;
+
   z-index:5;
+
+  box-shadow:none;
 }
 
 .more-chip{
@@ -879,42 +949,71 @@ body.dark .counter-control{
 
 .bottom-nav{
   position:fixed;
-  bottom:14px;
-  left:14px;
-  right:14px;
-  height:76px;
-  background:rgba(255,255,255,.92);
-  backdrop-filter:blur(20px);
-  border-radius:32px;
+  bottom:0;
+  left:0;
+  right:0;
+
+  height:74px;
+
+  background:rgba(255,255,255,.96);
+
+  border-top:1px solid var(--border);
+
   display:grid;
   grid-template-columns:repeat(6,1fr);
-  box-shadow:0 14px 34px rgba(0,0,0,.10);
+
   z-index:1000;
-  padding:6px;
+
+  padding-bottom:env(safe-area-inset-bottom);
+
+  backdrop-filter:blur(18px);
+
+  transition:
+    background var(--transition),
+    border-color var(--transition);
 }
 
 body.dark .bottom-nav{
-  background:rgba(15,23,42,.94);
+  background:rgba(5,5,5,.96);
 }
 
 .nav-btn{
   background:transparent;
   color:var(--muted);
-  border-radius:23px;
-  font-size:9px;
-  padding:7px 3px;
-  font-weight:850;
+
+  border-radius:0;
+
+  font-size:10px;
+  font-weight:600;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  gap:4px;
+
+  transition:
+    color var(--transition),
+    opacity var(--transition);
 }
 
 .nav-btn span{
-  display:block;
-  font-size:21px;
-  margin-bottom:3px;
+  font-size:18px;
+  margin:0;
 }
 
 .nav-btn.active{
-  background:var(--primary-soft);
-  color:var(--primary);
+  color:var(--text);
+}
+
+.nav-btn.active::after{
+  content:"";
+  width:18px;
+  height:2px;
+  border-radius:999px;
+  background:var(--text);
+  margin-top:2px;
 }
 
 /* PRINT */
@@ -954,8 +1053,11 @@ body.dark .bottom-nav{
   }
 
   .page-title{
-    font-size:28px;
-  }
+  font-size:34px;
+  font-weight:700;
+  letter-spacing:-1.6px;
+  margin:2px 0 4px;
+}
 
   .calendar-topbar{
     grid-template-columns:76px 1fr 1fr;
@@ -1050,4 +1152,67 @@ body.dark .bottom-nav{
   .day.has-soft .day-number{
     margin-left:12px!important;
   }
+}
+/* MICRO ANIMACIONES */
+
+button,
+.card,
+.day,
+.compact-summary-card,
+.nav-btn{
+  transition:
+    all var(--transition);
+}
+
+button:active{
+  transform:scale(.97);
+}
+
+.day:active{
+  transform:scale(.98);
+}
+
+.compact-summary-card:active{
+  transform:scale(.99);
+}
+
+/* ESTÉTICA EDITORIAL */
+
+.compact-tag{
+  font-size:10px;
+  font-weight:700;
+  color:var(--muted);
+  letter-spacing:.4px;
+}
+
+.profile-dashboard-name{
+  font-size:22px;
+  font-weight:700;
+  letter-spacing:-.8px;
+}
+
+.profile-total-hours{
+  font-size:38px;
+  font-weight:700;
+  letter-spacing:-2px;
+}
+
+.mini-hour-value{
+  font-size:22px;
+  font-weight:700;
+  letter-spacing:-1px;
+}
+
+input,
+select,
+textarea{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+}
+
+body.dark input,
+body.dark select,
+body.dark textarea{
+  background:#0b0b0b;
 }
