@@ -1402,3 +1402,61 @@ body.dark #calendario .day.empty{
   text-transform:uppercase;
   letter-spacing:.5px;
 }
+/* ==================================================
+   UX APP NATIVA
+================================================== */
+
+html,
+body{
+  touch-action:manipulation;
+  overscroll-behavior:none;
+}
+
+/* Evitar zoom doble tap */
+
+*{
+  touch-action:manipulation;
+}
+
+/* Evitar selección accidental */
+
+body{
+  -webkit-user-select:none;
+  user-select:none;
+}
+
+/* Permitir escribir en inputs */
+
+input,
+textarea,
+select{
+  -webkit-user-select:text;
+  user-select:text;
+}
+
+/* Evitar highlight azul iOS */
+
+*{
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* Evitar zoom automático en inputs iPhone */
+
+input,
+select,
+textarea{
+  font-size:16px!important;
+}
+
+/* Scroll más tipo app */
+
+body{
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Evitar rebote lateral */
+
+html,
+body{
+  overflow-x:hidden;
+}
