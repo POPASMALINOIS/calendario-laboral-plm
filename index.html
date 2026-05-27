@@ -179,6 +179,20 @@
   <div class="corporate-page-header">
   <div class="brand-kicker">CONFIGURACIÓN</div>
   <div class="page-title">Ajustes</div>
+  <div class="card">
+  <h3>Sincronización compartida</h3>
+
+  <div class="form-row">
+    <label>Código de calendario compartido</label>
+    <input type="text" id="sharedCalendarInput" placeholder="Ej. PLM-JUANMA-MARIA">
+  </div>
+
+  <button class="full" onclick="createSharedCalendar()">Crear / guardar calendario compartido</button>
+  <br><br>
+  <button class="secondary full" onclick="joinSharedCalendar()">Unirme a calendario compartido</button>
+
+  <div id="sharedCalendarStatus" class="small"></div>
+</div>
 </div>
 
   <div class="card">
