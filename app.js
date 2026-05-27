@@ -1638,122 +1638,84 @@ window.addEventListener("load", () => {
   }, 1000);
 });
 /* ==================================================
-   FIREBASE CLOUD SYNC
+   FIREBASE CLOUD SYNC - STATE ACTUAL
 ================================================== */
 
 async function saveCloudData(){
 
   try{
-
     if(!window.firebaseUser) return;
+    if(!window.firebaseDB) return;
 
     const uid = window.firebaseUser.uid;
 
     const payload = {
-
-      profiles,
-      calendarData,
-      counters,
-      historyData,
-      extraHours,
-
+      state: state,
       updatedAt: Date.now()
-
     };
 
-    await firebaseSetDoc(
-
-      firebaseDoc(
-        firebaseDB,
+    await window.firebaseSetDoc(
+      window.firebaseDoc(
+        window.firebaseDB,
         "calendarUsers",
         uid
       ),
-
       payload
-
     );
 
-    console.log("Datos sincronizados en nube");
+    console.log("Datos sincronizados en Firebase");
 
+  }catch(error){
+    console.error("Error guardando en Firebase:", error);
   }
-  catch(error){
-
-    console.error("Error guardando nube:", error);
-
-  }
-
 }
 
 async function loadCloudData(){
 
   try{
-
     if(!window.firebaseUser) return;
+    if(!window.firebaseDB) return;
 
     const uid = window.firebaseUser.uid;
 
-    const snap = await firebaseGetDoc(
-
-      firebaseDoc(
-        firebaseDB,
+    const snap = await window.firebaseGetDoc(
+      window.firebaseDoc(
+        window.firebaseDB,
         "calendarUsers",
         uid
       )
-
     );
 
     if(snap.exists()){
 
       const data = snap.data();
 
-      if(data.profiles) profiles = data.profiles;
-      if(data.calendarData) calendarData = data.calendarData;
-      if(data.counters) counters = data.counters;
-      if(data.historyData) historyData = data.historyData;
-      if(data.extraHours) extraHours = data.extraHours;
+      if(data.state){
+        state = data.state;
+        saveState();
+        renderAll();
+        console.log("Datos cargados desde Firebase");
+      }
 
-      saveData();
-
-      renderAll();
-
-      console.log("Datos cargados desde nube");
-
-    }
-    else{
-
-      console.log("Primer inicio nube");
-
-      saveCloudData();
-
+    }else{
+      console.log("Primer guardado en Firebase");
+      await saveCloudData();
     }
 
+  }catch(error){
+    console.error("Error cargando Firebase:", error);
   }
-  catch(error){
-
-    console.error("Error cargando nube:", error);
-
-  }
-
 }
 
-/* Esperar login Firebase */
+const firebaseWait = setInterval(() => {
 
-const firebaseWait = setInterval(()=>{
-
-  if(window.firebaseUser){
-
+  if(window.firebaseUser && window.firebaseDB){
     clearInterval(firebaseWait);
-
     loadCloudData();
-
   }
 
-},500);
+}, 500);
 
-/* Guardado automático nube */
-
-setInterval(()=>{
-
+setInterval(() => {
   saveCloudData();
-
-},15000);
+}, 15000);
