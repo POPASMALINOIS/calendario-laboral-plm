@@ -2177,3 +2177,9 @@ body.dark textarea{
 .corporate-nav .nav-btn span{
   display:none!important;
 }
+.year-mini-day.has-soft{
+  background:var(--card);
+  border-color:var(--border);
+  position:relative;
+  overflow:hidden;
+}
