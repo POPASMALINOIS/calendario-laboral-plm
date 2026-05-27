@@ -29,18 +29,24 @@
 <main>
 
 <section id="resumen" class="tab active">
-  <div class="page-title">Calendario Laboral PLM</div>
-  <div class="page-subtitle">Resumen anual por perfil</div>
 
-  <div class="dashboard-filters">
+  <div class="corporate-hero">
+    <div class="brand-kicker">PLATAFORMA LOGÍSTICA</div>
+    <div class="brand-title">MECO</div>
+    <div class="brand-subtitle">Calendario laboral personal</div>
+  </div>
+
+  <div class="editorial-filters">
     <select id="summaryYear" onchange="changeSummaryYear(this.value)"></select>
     <select id="summaryProfileSelect" onchange="setActiveProfile(this.value)"></select>
   </div>
 
-  <div id="profileSummaryPanel"></div>
+  <div class="editorial-section-title">Resumen anual</div>
+  <div id="profileSummaryPanel" class="editorial-profile-summary"></div>
 
-  <div class="section-heading">Permisos y contadores</div>
-  <div class="compact-grid" id="summaryGrid"></div>
+  <div class="editorial-section-title">Permisos y contadores</div>
+  <div class="editorial-list-grid" id="summaryGrid"></div>
+
 </section>
 
 <section id="calendario" class="tab">
@@ -223,13 +229,36 @@
 
 </main>
 
-<nav class="bottom-nav">
-  <button class="nav-btn active" onclick="showTab('resumen',this)"><span>🏠</span>Inicio</button>
-  <button class="nav-btn" onclick="showTab('calendario',this)"><span>📅</span>Calend.</button>
-  <button class="nav-btn" onclick="showTab('contadores',this)"><span>📊</span>Cont.</button>
-  <button class="nav-btn" onclick="showTab('historico',this)"><span>🗂️</span>Hist.</button>
-  <button class="nav-btn" onclick="showTab('horas',this)"><span>⏱️</span>Horas</button>
-  <button class="nav-btn" onclick="showTab('ajustes',this)"><span>⚙️</span>Ajustes</button>
+<nav class="bottom-nav corporate-nav">
+  <button class="nav-btn active" onclick="showTab('resumen',this)">
+    <span>HOME</span>
+    Inicio
+  </button>
+
+  <button class="nav-btn" onclick="showTab('calendario',this)">
+    <span>CALEND.</span>
+    Calendario
+  </button>
+
+  <button class="nav-btn" onclick="showTab('contadores',this)">
+    <span>CONT.</span>
+    Contadores
+  </button>
+
+  <button class="nav-btn" onclick="showTab('historico',this)">
+    <span>HIST.</span>
+    Histórico
+  </button>
+
+  <button class="nav-btn" onclick="showTab('horas',this)">
+    <span>HORAS</span>
+    Horas
+  </button>
+
+  <button class="nav-btn" onclick="showTab('ajustes',this)">
+    <span>AJUSTES</span>
+    Ajustes
+  </button>
 </nav>
 
 <div id="editModal" class="modal-backdrop">
