@@ -13,7 +13,7 @@ viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2563eb">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=91">
+<link rel="stylesheet" href="styles.css?v=92">
 </head>
 
 <body>
@@ -55,6 +55,10 @@ viewport-fit=cover">
 </section>
 
 <section id="calendario" class="tab">
+  <div class="corporate-page-header">
+  <div class="brand-kicker">PLANIFICACIÓN</div>
+  <div class="page-title">Calendario</div>
+</div>
   <div class="calendar-topbar">
     <select id="calendarYearSelect" onchange="jumpToYear(this.value)"></select>
     <select id="calendarProfileSelect" onchange="setActiveProfile(this.value)"></select>
@@ -79,7 +83,10 @@ viewport-fit=cover">
 </section>
 
 <section id="contadores" class="tab">
+  <div class="corporate-page-header">
+  <div class="brand-kicker">CONTROL ANUAL</div>
   <div class="page-title">Contadores</div>
+</div>
 
   <div class="dashboard-filters">
     <select id="counterYear" onchange="renderCounters()"></select>
@@ -91,7 +98,10 @@ viewport-fit=cover">
 </section>
 
 <section id="historico" class="tab">
+  <div class="corporate-page-header">
+  <div class="brand-kicker">REGISTROS</div>
   <div class="page-title">Histórico</div>
+</div>
 
   <div class="card">
     <div class="form-row">
@@ -132,7 +142,10 @@ viewport-fit=cover">
 </section>
 
 <section id="horas" class="tab">
-  <div class="page-title">Horas extra</div>
+  <div class="corporate-page-header">
+  <div class="brand-kicker">HORAS EXTRA</div>
+  <div class="page-title">Horas</div>
+</div>
 
   <div class="card">
     <div class="form-row">
@@ -168,7 +181,10 @@ viewport-fit=cover">
 </section>
 
 <section id="ajustes" class="tab">
+  <div class="corporate-page-header">
+  <div class="brand-kicker">CONFIGURACIÓN</div>
   <div class="page-title">Ajustes</div>
+</div>
 
   <div class="card">
     <h3>Perfiles y jornada</h3>
