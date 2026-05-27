@@ -664,13 +664,10 @@ body.dark .day.today{
 }
 
 .year-mini-day.has-soft{
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--day-main-color) 26%, var(--card)),
-      var(--card) 74%
-    );
-  border-color:color-mix(in srgb, var(--day-main-color) 44%, transparent);
+  background:var(--card);
+  border-color:var(--border);
+  position:relative;
+  overflow:hidden;
 }
 
 .year-mini-day .day-side-bars{
