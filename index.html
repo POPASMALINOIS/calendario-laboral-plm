@@ -316,7 +316,66 @@
 
   </div>
 </div>
+<script type="module">
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAOfb4PFr4Z4bQE-ZcOYk7yaxjHmXfygw0",
+  authDomain: "calendario-laboral-plm.firebaseapp.com",
+  projectId: "calendario-laboral-plm",
+  storageBucket: "calendario-laboral-plm.firebasestorage.app",
+  messagingSenderId: "808699884399",
+  appId: "1:808699884399:web:0ce068a857a9e3369a6e9a",
+  measurementId: "G-HRGM2V0BZX"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+const auth = getAuth(app);
+
+window.firebaseDB = db;
+window.firebaseAuth = auth;
+window.firebaseDoc = doc;
+window.firebaseSetDoc = setDoc;
+window.firebaseGetDoc = getDoc;
+
+signInAnonymously(auth)
+  .then(() => {
+    console.log("Firebase conectado");
+  })
+  .catch((error) => {
+    console.error("Error Firebase:", error);
+  });
+
+onAuthStateChanged(auth, (user) => {
+
+  if(user){
+
+    window.firebaseUser = user;
+
+    console.log("Usuario conectado:", user.uid);
+
+  }
+
+});
+
+</script>
 <script src="app.js?v=80"></script>
 
 <script>
