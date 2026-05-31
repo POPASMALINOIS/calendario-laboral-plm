@@ -594,20 +594,21 @@ body.dark .day.today{
 
 .profile-shift{
   position:absolute;
-  overflow:hidden;
-  right:6px;
-  width:32px;
+  top:4px;
+  right:4px;
+  min-width:34px;
   height:18px;
-  border-radius:5px;
+  padding:0 6px 0 9px;
+  border-radius:6px;
+  background:rgba(15,23,42,.88);
+  color:white;
+  font-size:9px;
+  font-weight:800;
   display:flex;
   align-items:center;
   justify-content:center;
-  color:white;
-  font-size:8px;
-  font-weight:700;
-  letter-spacing:.2px;
-  z-index:5;
-  padding-left:8px;
+  z-index:10;
+  box-shadow:0 2px 6px rgba(0,0,0,.25);
 }
 
 .profile-shift::before{
@@ -616,7 +617,8 @@ body.dark .day.today{
   left:0;
   top:0;
   bottom:0;
-  width:4px;
+  width:5px;
+  border-radius:6px 0 0 6px;
   background:var(--profile-color,#2563eb);
 }
 
