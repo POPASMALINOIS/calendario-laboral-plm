@@ -631,6 +631,28 @@ function renderCalendar(){
   const week = document.getElementById("viewWeek");
   const year = document.getElementById("viewYear");
 
+  if (state.view === "year" && state.activeProfile === "all") {
+    const firstProfile = getProfiles()[0];
+
+    if (firstProfile) {
+      state.activeProfile = firstProfile.id;
+
+      [
+        "summaryProfileSelect",
+        "calendarProfileSelect",
+        "counterProfileSelect",
+        "historyProfileSelect",
+        "extraProfileSelect",
+        "modalProfile"
+      ].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = state.activeProfile;
+      });
+
+      saveState();
+    }
+  }
+
   if (month) month.classList.toggle("active", state.view === "month");
   if (week) week.classList.toggle("active", state.view === "week");
   if (year) year.classList.toggle("active", state.view === "year");
