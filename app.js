@@ -426,14 +426,7 @@ function createDayCell(date, mini = false){
   }
 
   if (!mini) {
-    const profileSelectText =
-      document.getElementById("profileSelect")?.selectedOptions?.[0]?.textContent || "";
-
-    const isJointView =
-      profileSelectText.toLowerCase().includes("vista conjunta") ||
-      state.selectedProfile === "all" ||
-      state.currentProfile === "all" ||
-      state.profile === "all";
+    const isJointView = state.activeProfile === "all";
 
     assignments.slice(0, 3).forEach((item, index) => {
       const chip = document.createElement("div");
@@ -450,8 +443,8 @@ function createDayCell(date, mini = false){
 
       if (isJointView) {
         chip.className = "profile-shift-joint";
+        chip.style.setProperty("--profile-color", profileColor);
         chip.style.top = `${30 + (index * 18)}px`;
-        chip.style.color = profileColor;
         chip.textContent = shiftLabel;
       } else {
         chip.className = "profile-shift";
