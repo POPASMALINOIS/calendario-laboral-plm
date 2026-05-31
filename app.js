@@ -398,20 +398,22 @@ function createDayCell(date, mini = false){
 
   if (key === today) cell.classList.add("today");
 
-  if (assignments.length) {
-    cell.classList.add("has-soft");
+  const isJointView = state.activeProfile === "all";
 
+  if (assignments.length && !isJointView) {
+    cell.classList.add("has-soft");
+   
     const mainColor = assignments[0].type === "event"
       ? "#111827"
       : getColor(assignments[0].category);
-
+   
     cell.style.setProperty("--day-main-color", mainColor);
-
+   
     const bars = document.createElement("div");
     bars.className = "day-side-bars";
     bars.style.background = buildDayBackground(assignments);
     cell.appendChild(bars);
-  }
+   }
 
   const num = document.createElement("div");
   num.className = "day-number" + (holiday ? " holiday" : "");
@@ -426,7 +428,6 @@ function createDayCell(date, mini = false){
   }
 
   if (!mini) {
-    const isJointView = state.activeProfile === "all";
 
     assignments.slice(0, 3).forEach((item, index) => {
       const chip = document.createElement("div");
