@@ -594,6 +594,7 @@ body.dark .day.today{
 
 .profile-shift{
   position:absolute;
+  overflow:hidden;
   right:6px;
   width:32px;
   height:18px;
@@ -605,8 +606,18 @@ body.dark .day.today{
   font-size:8px;
   font-weight:700;
   letter-spacing:.2px;
-  overflow:hidden;
   z-index:5;
+  padding-left:8px;
+}
+
+.profile-shift::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:4px;
+  background:var(--profile-color,#2563eb);
 }
 
 .more-chip{
