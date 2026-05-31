@@ -441,12 +441,16 @@ function createDayCell(date, mini = false){
         ? "#111827"
         : getColor(item.category);
 
-      const label = item.type === "event"
+      const shiftLabel = item.type === "event"
         ? (item.event.allDay ? "EV" : item.event.time)
         : getCategoryTag(item.category);
-
+      
+      const profileLabel = item.profile?.name
+        ? item.profile.name.slice(0, 3).toUpperCase()
+        : "PER";
+      
       chip.style.background = chipColor;
-      chip.textContent = label;
+      chip.textContent = `${profileLabel} · ${shiftLabel}`;
 
       cell.appendChild(chip);
     });
