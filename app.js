@@ -245,11 +245,12 @@ function renderProfileSelectors(){
 
     el.innerHTML = "";
 
-    const all = document.createElement("option");
-    all.value = "all";
-    all.textContent = "Vista conjunta";
-    el.appendChild(all);
-
+    if (state.view !== "year") {
+      const all = document.createElement("option");
+      all.value = "all";
+      all.textContent = "Vista conjunta";
+      el.appendChild(all);
+   }
     getProfiles().forEach(profile => {
       const opt = document.createElement("option");
       opt.value = profile.id;
@@ -258,6 +259,13 @@ function renderProfileSelectors(){
     });
 
     el.value = state.activeProfile;
+     if (state.view === "year" && state.activeProfile === "all") {
+       const firstProfile = getProfiles()[0];
+       if (firstProfile) {
+         state.activeProfile = firstProfile.id;
+         el.value = firstProfile.id;
+       }
+     }
   });
 }
 
@@ -627,31 +635,19 @@ function renderYearCalendar(){
 }
 
 function renderCalendar(){
-  const month = document.getElementById("viewMonth");
-  const week = document.getElementById("viewWeek");
-  const year = document.getElementById("viewYear");
-
   if (state.view === "year" && state.activeProfile === "all") {
     const firstProfile = getProfiles()[0];
-
     if (firstProfile) {
       state.activeProfile = firstProfile.id;
-
-      [
-        "summaryProfileSelect",
-        "calendarProfileSelect",
-        "counterProfileSelect",
-        "historyProfileSelect",
-        "extraProfileSelect",
-        "modalProfile"
-      ].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = state.activeProfile;
-      });
-
       saveState();
     }
   }
+
+  renderProfileSelectors();
+
+  const month = document.getElementById("viewMonth");
+  const week = document.getElementById("viewWeek");
+  const year = document.getElementById("viewYear");
 
   if (month) month.classList.toggle("active", state.view === "month");
   if (week) week.classList.toggle("active", state.view === "week");
