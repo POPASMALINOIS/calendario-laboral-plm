@@ -428,7 +428,9 @@ function createDayCell(date, mini = false){
   if (!mini) {
     assignments.slice(0, 3).forEach((item, index) => {
       const chip = document.createElement("div");
-      chip.className = "profile-shift";
+      chip.className = state.selectedProfile === "all"
+        ? "profile-shift profile-shift-joint"
+        : "profile-shift";
       
       chip.style.setProperty(
         "--profile-color",
@@ -449,8 +451,14 @@ function createDayCell(date, mini = false){
         ? item.profile.name.slice(0, 3).toUpperCase()
         : "PER";
       
-      chip.style.background = chipColor;
-      chip.textContent = `${profileLabel} · ${shiftLabel}`;
+     if (state.selectedProfile === "all") {
+        chip.style.background = "transparent";
+        chip.style.color = item.profile?.color || "#2563eb";
+        chip.textContent = shiftLabel;
+      } else {
+        chip.style.background = chipColor;
+        chip.textContent = shiftLabel;
+      }
 
       cell.appendChild(chip);
     });
