@@ -400,7 +400,7 @@ function createDayCell(date, mini = false){
 
   const isJointView = state.activeProfile === "all";
 
-  if (assignments.length && !isJointView) {
+  if (assignments.length && (!isJointView || mini)) {
     cell.classList.add("has-soft");
    
     const mainColor = assignments[0].type === "event"
