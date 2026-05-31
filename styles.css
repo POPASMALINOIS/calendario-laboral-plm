@@ -2232,3 +2232,24 @@ body.dark textarea{
   position:relative!important;
   z-index:4!important;
 }
+.profile-shift-joint{
+  right:auto;
+  left:4px;
+  width:auto;
+  min-width:0;
+  max-width:calc(100% - 8px);
+  padding:0;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:var(--profile-color,#2563eb);
+  font-size:9px;
+  font-weight:800;
+  justify-content:flex-start;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  overflow:hidden;
+}
+
+.profile-shift-joint::before{
+  display:none;
+}
