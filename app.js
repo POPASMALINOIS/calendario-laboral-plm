@@ -1504,21 +1504,15 @@ function downloadFile(filename, content, type="text/plain"){
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  a.style.display = "none";
+
+  document.body.appendChild(a);
   a.click();
 
-  URL.revokeObjectURL(url);
-}
-
-function exportHistoryCSV(){
-  const rows = ["Perfil,Fecha,Categoría,Horas,Observaciones"];
-
-  getProfiles().forEach(profile => {
-    (profile.history || []).forEach(item => {
-      rows.push(`"${profile.name}","${item.date}","${getCategoryName(item.category)}","${item.hours || ""}","${(item.note || "").replace(/"/g,'""')}"`);
-    });
-  });
-
-  downloadFile(`historico_calendario_plm_${new Date().toISOString().slice(0,10)}.csv`, rows.join("\n"), "text/csv");
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 500);
 }
 
 function exportExtrasCSV(){
@@ -1572,11 +1566,130 @@ function importBackup(event){
 }
 
 function exportPDF(){
-  window.print();
+  setTimeout(() => {
+    window.print();
+  }, 150);
 }
 
 function exportAnnualCalendarPDF(){
-  window.print();
+  const year = Number(document.getElementById("calendarYearSelect")?.value || currentDate.getFullYear());
+
+  let html = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Calendario Laboral ${year}</title>
+<style>
+@page{size:A4 portrait;margin:10mm;}
+body{font-family:Arial,sans-serif;color:#111;margin:0;}
+h1{text-align:center;font-size:22px;margin:0 0 14px;}
+.year-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.month{border:1px solid #ccc;border-radius:8px;padding:6px;page-break-inside:avoid;}
+.month h2{text-align:center;font-size:12px;margin:0 0 5px;text-transform:capitalize;}
+.weekdays,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.weekday{font-size:7px;font-weight:bold;text-align:center;color:#777;}
+.day{min-height:28px;border:1px solid #e5e5e5;border-radius:4px;padding:2px;font-size:7px;overflow:hidden;}
+.empty{border:none;}
+.has{color:white;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.tag{display:block;font-size:6px;margin-top:1px;background:rgba(0,0,0,.25);color:white;border-radius:3px;padding:1px 2px;}
+.legend{margin-top:12px;border-top:1px solid #ccc;padding-top:8px;}
+.legend h3{text-align:center;font-size:11px;margin:0 0 6px;}
+.legend-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 8px;font-size:7px;}
+.legend-item{display:flex;align-items:center;gap:4px;}
+.legend-color{width:9px;height:9px;border-radius:2px;border:1px solid #555;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+</style>
+</head>
+<body>
+<h1>Calendario Laboral ${year}</h1>
+<div class="year-grid">
+`;
+
+  for(let m = 0; m < 12; m++){
+    html += `<div class="month"><h2>${monthNames[m]}</h2>`;
+    html += `<div class="weekdays">`;
+    weekDays.forEach(w => html += `<div class="weekday">${w}</div>`);
+    html += `</div><div class="days">`;
+
+    const first = new Date(year, m, 1);
+    const last = new Date(year, m + 1, 0);
+
+    let start = first.getDay();
+    start = start === 0 ? 6 : start - 1;
+
+    for(let i = 0; i < start; i++){
+      html += `<div class="day empty"></div>`;
+    }
+
+    for(let d = 1; d <= last.getDate(); d++){
+      const key = formatDate(new Date(year, m, d));
+      const assignments = getDayAssignments(key);
+      const background = buildDayBackground(assignments);
+
+      html += `
+        <div class="day ${assignments.length ? "has" : ""}" style="${background ? `background:${background};` : ""}">
+          <strong>${d}</strong>
+      `;
+
+      assignments.slice(0,2).forEach(item => {
+        html += `<span class="tag">${item.profile.name} · ${item.type === "event" ? "EV" : getCategoryTag(item.category)}</span>`;
+      });
+
+      html += `</div>`;
+    }
+
+    html += `</div></div>`;
+  }
+
+  html += `
+</div>
+<div class="legend">
+<h3>Leyenda</h3>
+<div class="legend-grid">
+`;
+
+  categories.forEach(cat => {
+    html += `
+      <div class="legend-item">
+        <span class="legend-color" style="background:${getColor(cat.id)}"></span>
+        <span><strong>${cat.tag}</strong> ${cat.name}</span>
+      </div>
+    `;
+  });
+
+  getProfiles().forEach(profile => {
+    html += `
+      <div class="legend-item">
+        <span class="legend-color" style="background:${profile.color}"></span>
+        <span>${profile.name}</span>
+      </div>
+    `;
+  });
+
+  html += `
+</div>
+</div>
+<script>
+window.onload = function(){
+  setTimeout(function(){
+    window.print();
+  }, 300);
+};
+<\/script>
+</body>
+</html>
+`;
+
+  const printWindow = window.open("", "_blank");
+
+  if(!printWindow){
+    alert("El navegador ha bloqueado la ventana de impresión. Permite ventanas emergentes para esta app.");
+    return;
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
 }
 
 /* ==================================================
