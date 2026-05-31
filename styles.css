@@ -2253,3 +2253,28 @@ body.dark textarea{
 .profile-shift-joint::before{
   display:none;
 }
+.profile-shift-joint{
+  position:absolute;
+  left:6px;
+  right:auto;
+  min-width:0;
+  width:auto;
+  max-width:calc(100% - 12px);
+  height:18px;
+  padding:0;
+  background:transparent!important;
+  color:var(--profile-color,#2563eb)!important;
+  font-size:10px;
+  font-weight:900;
+  line-height:18px;
+  z-index:10;
+  box-shadow:none!important;
+  border-radius:0;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.profile-shift-joint::before{
+  display:none!important;
+}
