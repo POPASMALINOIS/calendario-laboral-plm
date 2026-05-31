@@ -429,6 +429,12 @@ function createDayCell(date, mini = false){
     assignments.slice(0, 3).forEach((item, index) => {
       const chip = document.createElement("div");
       chip.className = "profile-shift";
+      
+      chip.style.setProperty(
+        "--profile-color",
+        item.profile.color || "#2563eb"
+      );
+      
       chip.style.top = `${30 + (index * 22)}px`;
 
       const chipColor = item.type === "event"
