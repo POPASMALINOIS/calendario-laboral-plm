@@ -429,7 +429,10 @@ function createDayCell(date, mini = false){
     assignments.slice(0, 3).forEach((item, index) => {
       const chip = document.createElement("div");
       chip.className = state.selectedProfile === "all"
-        ? "profile-shift profile-shift-joint"
+      const isJointView = state.selectedProfile === "all" || state.currentProfile === "all";
+
+      chip.className = isJointView
+        ? "profile-shift-joint"
         : "profile-shift";
       
       chip.style.setProperty(
