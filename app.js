@@ -426,21 +426,17 @@ function createDayCell(date, mini = false){
   }
 
   if (!mini) {
+    const profileSelectText =
+      document.getElementById("profileSelect")?.selectedOptions?.[0]?.textContent || "";
+
+    const isJointView =
+      profileSelectText.toLowerCase().includes("vista conjunta") ||
+      state.selectedProfile === "all" ||
+      state.currentProfile === "all" ||
+      state.profile === "all";
+
     assignments.slice(0, 3).forEach((item, index) => {
       const chip = document.createElement("div");
-      chip.className = state.selectedProfile === "all"
-      const isJointView = state.selectedProfile === "all" || state.currentProfile === "all";
-
-      chip.className = isJointView
-        ? "profile-shift-joint"
-        : "profile-shift";
-      
-      chip.style.setProperty(
-        "--profile-color",
-        item.profile.color || "#2563eb"
-      );
-      
-      chip.style.top = `${30 + (index * 22)}px`;
 
       const chipColor = item.type === "event"
         ? "#111827"
@@ -449,16 +445,18 @@ function createDayCell(date, mini = false){
       const shiftLabel = item.type === "event"
         ? (item.event.allDay ? "EV" : item.event.time)
         : getCategoryTag(item.category);
-      
-      const profileLabel = item.profile?.name
-        ? item.profile.name.slice(0, 3).toUpperCase()
-        : "PER";
-      
-     if (state.selectedProfile === "all") {
-        chip.style.background = "transparent";
-        chip.style.color = item.profile?.color || "#2563eb";
+
+      const profileColor = item.profile?.color || "#2563eb";
+
+      if (isJointView) {
+        chip.className = "profile-shift-joint";
+        chip.style.top = `${30 + (index * 18)}px`;
+        chip.style.color = profileColor;
         chip.textContent = shiftLabel;
       } else {
+        chip.className = "profile-shift";
+        chip.style.setProperty("--profile-color", profileColor);
+        chip.style.top = `${30 + (index * 22)}px`;
         chip.style.background = chipColor;
         chip.textContent = shiftLabel;
       }
@@ -468,9 +466,17 @@ function createDayCell(date, mini = false){
 
     if (assignments.length > 3) {
       const more = document.createElement("div");
-      more.className = "profile-shift more-chip";
-      more.style.top = `${30 + (3 * 22)}px`;
-      more.textContent = `+${assignments.length - 3}`;
+
+      if (isJointView) {
+        more.className = "profile-shift-joint more-chip";
+        more.style.top = `${30 + (3 * 18)}px`;
+        more.textContent = `+${assignments.length - 3}`;
+      } else {
+        more.className = "profile-shift more-chip";
+        more.style.top = `${30 + (3 * 22)}px`;
+        more.textContent = `+${assignments.length - 3}`;
+      }
+
       cell.appendChild(more);
     }
   }
