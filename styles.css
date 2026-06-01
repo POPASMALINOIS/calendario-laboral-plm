@@ -2303,3 +2303,13 @@ body.dark textarea{
 .profile-shift-joint::before{
   display:none!important;
 }
+html,
+body{
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  -webkit-text-size-adjust: 100%;
+}
+
+*{
+  touch-action: manipulation;
+}
