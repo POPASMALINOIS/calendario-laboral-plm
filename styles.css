@@ -2309,7 +2309,22 @@ body{
   overscroll-behavior: contain;
   -webkit-text-size-adjust: 100%;
 }
+html,
+body{
+  overflow-x:hidden;
+  overflow-y:auto;
+  touch-action:pan-y;
+}
 
-*{
-  touch-action: manipulation;
+body{
+  min-height:100dvh;
+}
+
+#calendarContainer,
+.year-grid,
+.month-calendar,
+.week-calendar,
+.day,
+.year-mini-day{
+  touch-action:pan-y;
 }
