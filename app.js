@@ -2153,7 +2153,7 @@ document.addEventListener("gesturechange", e => {
 document.addEventListener("gestureend", e => {
   e.preventDefault();
 });
-
+/*
 let lastTouchEnd = 0;
 
 document.addEventListener(
@@ -2179,3 +2179,4 @@ document.addEventListener(
   },
   { passive: false }
 );
+*/
