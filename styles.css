@@ -1418,14 +1418,8 @@ body.dark #calendario .day.empty{
 
 html,
 body{
-  touch-action:manipulation;
+  touch-action:auto;
   overscroll-behavior:none;
-}
-
-/* Evitar zoom doble tap */
-
-*{
-  touch-action:manipulation;
 }
 
 /* Evitar selección accidental */
@@ -2305,15 +2299,17 @@ body.dark textarea{
 }
 html,
 body{
-  touch-action: pan-y;
-  overscroll-behavior: contain;
-  -webkit-text-size-adjust: 100%;
+    touch-action:auto;
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior:auto;
+    -webkit-text-size-adjust:100%;
 }
 html,
 body{
   overflow-x:hidden;
   overflow-y:auto;
-  touch-action:pan-y;
+  touch-action:auto;
 }
 
 body{
@@ -2326,5 +2322,5 @@ body{
 .week-calendar,
 .day,
 .year-mini-day{
-  touch-action:pan-y;
+  touch-action:auto;
 }
