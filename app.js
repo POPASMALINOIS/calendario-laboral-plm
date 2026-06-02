@@ -2154,3 +2154,39 @@ if ("serviceWorker" in navigator) {
       });
   });
 }
+/* ==================================================
+   INSTALACIÓN PWA ANDROID
+================================================== */
+
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", event => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+
+  const installBtn = document.getElementById("installAppBtn");
+  if (installBtn) installBtn.style.display = "block";
+});
+
+async function installPWA(){
+  if (!deferredInstallPrompt) {
+    alert("Chrome todavía no permite instalar la app. Abre la app en Chrome, espera unos segundos y vuelve a intentarlo.");
+    return;
+  }
+
+  deferredInstallPrompt.prompt();
+
+  const result = await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+
+  const installBtn = document.getElementById("installAppBtn");
+  if (installBtn) installBtn.style.display = "none";
+
+  console.log("Resultado instalación PWA:", result.outcome);
+}
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  const installBtn = document.getElementById("installAppBtn");
+  if (installBtn) installBtn.style.display = "none";
+});
