@@ -2190,3 +2190,7 @@ window.addEventListener("appinstalled", () => {
   const installBtn = document.getElementById("installAppBtn");
   if (installBtn) installBtn.style.display = "none";
 });
+window.addEventListener("beforeinstallprompt", e => {
+  console.log("PWA instalable en Android");
+  alert("Chrome permite instalar la app");
+});
